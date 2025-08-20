@@ -1,26 +1,26 @@
 package com.example.quizapp.presentation.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.quizapp.data.models.PerformanceResponse
+import com.example.quizapp.data.repository.QuizRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val repository: QuizRepository) : ViewModel() {
 
-    private val _username = MutableStateFlow("")
-    val username: StateFlow<String> = _username
+    private val _performance = MutableStateFlow<PerformanceResponse?>(null)
+    val performance: StateFlow<PerformanceResponse?> = _performance
 
-    private val _scholarId = MutableStateFlow("")
-    val scholarId: StateFlow<String> = _scholarId
-
-    private val _quizStarted = MutableStateFlow(false)
-    val quizStarted: StateFlow<Boolean> = _quizStarted
-
-    fun setUserInfo(name: String, id: String) {
-        _username.value = name
-        _scholarId.value = id
-    }
-
-    fun startQuiz() {
-        _quizStarted.value = true
+    fun loadPerformance() {
+        viewModelScope.launch {
+            try {
+                val data = repository.getPerformance()
+                _performance.value = data
+            } catch (e: Exception) {
+                // handle error, maybe set _performance.value = null
+            }
+        }
     }
 }

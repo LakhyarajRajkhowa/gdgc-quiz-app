@@ -1,93 +1,65 @@
 package com.example.quizapp.presentation.quiz
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.quizapp.domain.models.Question
-import kotlinx.coroutines.Dispatchers
+import com.example.quizapp.data.api.WebSocketManager
+import com.example.quizapp.data.models.*
+import com.example.quizapp.data.repository.QuizRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import java.io.BufferedReader
 
-class QuizViewModel(application: Application) : AndroidViewModel(application) {
+class QuizViewModel(
+    private val repository: QuizRepository,
+    private val wsManager: WebSocketManager
+) : ViewModel() {
 
-    private val _questions = MutableStateFlow<List<Question>>(emptyList())
-    val questions: StateFlow<List<Question>> = _questions
+    private val _quizState = MutableStateFlow<QuizState>(QuizState.Idle)
+    val quizState: StateFlow<QuizState> = _quizState
 
-    private val _currentIndex = MutableStateFlow(0)
-    val currentIndex: StateFlow<Int> = _currentIndex
-
-    val currentQuestion: StateFlow<Question?> =
-        MutableStateFlow(null)
-
-    private val _timeLeft = MutableStateFlow(30)
-    val timeLeft: StateFlow<Int> = _timeLeft
-
-    init {
-        loadQuestionsFromAssets()
-    }
-
-    private fun loadQuestionsFromAssets() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val context = getApplication<Application>().applicationContext
-            val inputStream = context.assets.open("questions.json")
-            val bufferedReader = BufferedReader(inputStream.reader())
-            val jsonString = bufferedReader.use { it.readText() }
-
-            val jsonArray = JSONArray(jsonString)
-            val loadedQuestions = mutableListOf<Question>()
-
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                val id = obj.getInt("id")
-                val questionText = obj.getString("question")
-                val optionsArray = obj.getJSONArray("options")
-                val options = mutableListOf<String>()
-                for (j in 0 until optionsArray.length()) {
-                    options.add(optionsArray.getString(j))
-                }
-                val answerIndex = obj.getInt("answerIndex")
-
-                loadedQuestions.add(
-                    Question(
-                        id = id,
-                        question = questionText,
-                        options = options,
-                        answerIndex = answerIndex
-                    )
-                )
-            }
-
-            _questions.value = loadedQuestions
-            if (loadedQuestions.isNotEmpty()) {
-                (currentQuestion as MutableStateFlow).value = loadedQuestions[0]
+    fun createQuiz(name: String, questions: List<Question>) {
+        viewModelScope.launch {
+            try {
+                _quizState.value = QuizState.Loading
+                val response = repository.createQuiz(Quiz(name = name, questions = questions))
+                _quizState.value = QuizState.Created(response.message)
+            } catch (e: Exception) {
+                _quizState.value = QuizState.Error("Error creating quiz: ${e.message}")
             }
         }
     }
 
-    fun nextQuestion() {
-        val list = _questions.value
-        if (list.isNotEmpty() && _currentIndex.value < list.size - 1) {
-            _currentIndex.value += 1
-            (currentQuestion as MutableStateFlow).value = list[_currentIndex.value]
-            resetTimer()
+    fun joinQuiz(code: String) {
+        viewModelScope.launch {
+            try {
+                _quizState.value = QuizState.Loading
+                repository.joinQuiz(JoinQuizRequest(code))
+                val quiz = repository.getQuiz(code)
+                _quizState.value = QuizState.Joined(quiz)
+            } catch (e: Exception) {
+                _quizState.value = QuizState.Error("Error joining quiz: ${e.message}")
+            }
         }
     }
 
-     fun resetTimer() {
-        _timeLeft.value = 30
-        // TODO: add actual countdown logic if needed
+    fun startListeningToQuiz() {
+        wsManager.connect()
+        // Here you’d parse incoming WebSocket messages & update _quizState
     }
 
-    fun tick() {
-        val current = _timeLeft.value
-        if (current > 0) {
-            _timeLeft.value = current - 1
-        } else {
-            nextQuestion() // move to next question when time runs out
-        }
+    fun answerQuestion(index: Int) {
+        wsManager.send("ANSWER:$index")
     }
+}
 
+sealed class QuizState {
+    object Idle : QuizState()
+    object Loading : QuizState()
+    data class Success(val score: Int) : QuizState()
+    data class Error(val message: String) : QuizState()
+    data class Message(val message: String) : QuizState()
+    data class Created(val message: String) : QuizState()
+
+    // Add this ↓
+    data class Joined(val quiz: Quiz) : QuizState()
 }
