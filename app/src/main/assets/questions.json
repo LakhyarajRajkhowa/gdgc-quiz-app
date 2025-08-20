@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "question": "What izz the capital of France?",
+    "options": ["Paris", "London", "Rome", "Berlin"],
+    "answerIndex": 0
+  },
+  {
+    "id": 2,
+    "question": "Which planet is known as the Red Planet?",
+    "options": ["Earth", "Mars", "Jupiter", "Venus"],
+    "answerIndex": 1
+  },
+  {
+    "id": 3,
+    "question": "Who developed the theory of relativity?",
+    "options": ["Newton", "Einstein", "Tesla", "Galileo"],
+    "answerIndex": 1
+  },
+  {
+    "id": 4,
+    "question": "Are u gay?",
+    "options": ["Yes", "No", "Probably Yes", "Probably No"],
+    "answerIndex": 2
+  }
+]
