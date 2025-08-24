@@ -1,6 +1,8 @@
 package com.example.quizapp.presentation.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.quizapp.data.models.*
 import com.example.quizapp.data.repository.QuizRepository
@@ -19,6 +21,7 @@ class AuthViewModel(private val repository: QuizRepository) : ViewModel() {
                 _authState.value = AuthState.Loading
                 val response = repository.login(LoginRequest(username, password))
                 _authState.value = AuthState.Success(response.token)
+                Log.d("LoginTest", "Login success: $response")
             } catch (e: Exception) {
                 _authState.value = AuthState.Error("Login failed: ${e.message}")
             }
@@ -41,10 +44,8 @@ class AuthViewModel(private val repository: QuizRepository) : ViewModel() {
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    data class Success(val token: String) : AuthState()   // <-- now carries token
+    data class Success(val token: String) : AuthState()
     data class Error(val error: String) : AuthState()
     data class Message(val message: String) : AuthState()
 }
-
-
 

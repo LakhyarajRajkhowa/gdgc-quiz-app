@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)           // NEW: Hilt plugin
-    kotlin("kapt")                     // For Hilt annotation processing
+    kotlin("kapt")
+    // For Hilt annotation processing
 }
 
 android {
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
+
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
