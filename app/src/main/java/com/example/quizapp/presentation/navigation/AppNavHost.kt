@@ -9,7 +9,7 @@ import com.example.quizapp.presentation.home.*
 import com.example.quizapp.presentation.quiz.*
 import com.example.quizapp.data.models.LeaderboardEntry
 
-@Composable
+/*@Composable
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
@@ -74,4 +74,4 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
     }
-}
+}*/
