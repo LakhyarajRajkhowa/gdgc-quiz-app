@@ -1,8 +1,50 @@
 package com.example.quizapp.presentation.quiz
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.quizapp.R
+import com.example.quizapp.data.models.Question
+
+
+private val sampleQuestions = listOf(
+    Question(1, "What is the capital of China?", listOf("Delhi", "Berlin", "Washington DC", "Beijing"), 3),
+    Question(2, "Which planet is called the Red Planet?", listOf("Venus", "Mars", "Jupiter", "Saturn"), 1),
+    Question(3, "What is 2 + 2?", listOf("3", "4", "5", "22"), 1)
+)
+
+
 
 @Composable
 fun LiveQuizScreen(question: String, options: List<String>, onAnswer: (Int) -> Unit) {
@@ -12,4 +54,313 @@ fun LiveQuizScreen(question: String, options: List<String>, onAnswer: (Int) -> U
             Button(onClick = { onAnswer(index) }) { Text(option) }
         }
     }
+}
+
+@Composable
+fun QuizStartScreen(
+    totalQuestions: Int = 2,
+    secondsPerQuestion: Int = 30,
+    onBack: () -> Unit = {},
+    onBegin: () -> Unit = {}
+) {
+
+    Scaffold(
+        topBar = {
+            Surface(
+                tonalElevation = 0.dp,
+                color = Color(0xFF7D4CFF)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(start = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(top = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Total Questions:",
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = totalQuestions.toString(),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
+                )
+
+                Text(
+                    text = "Time for each question:",
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "$secondsPerQuestion seconds",
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
+                )
+
+                Button(
+                    onClick = onBegin,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .width(240.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF7D4CFF),
+                        contentColor = Color.White
+                )
+                ) {
+                    Text(
+                        text = "Begin Quiz!",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Image(
+                painter = painterResource(id = R.drawable.begin_quiz),
+                contentDescription = "Illustration",
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 90.dp)
+                    .height(360.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+fun QuizStartScreenPreview() {
+    QuizStartScreen()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuizScreen(
+    questions: List<Question> = sampleQuestions,
+    onBack: () -> Unit = {},
+    onFinish: () -> Unit = {}
+) {
+    val perQuestionSelected = remember { mutableStateListOf<Int?>().apply { repeat(questions.size) { add(null) } } }
+    val perQuestionSubmitted = remember { mutableStateListOf<Boolean>().apply { repeat(questions.size) { add(false) } } }
+
+    var currentIndex by rememberSaveable { mutableStateOf(0) }
+
+    val purple = Color(0xFF8A4BDA)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = purple)
+            )
+        },
+        containerColor = Color.White
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .align(Alignment.TopCenter)
+            ) {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Timer + icon
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "00:30", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Image(
+                        painter = painterResource(id = R.drawable.timer),
+                        contentDescription = "timer",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Question text
+                Text(
+                    text = "Q${currentIndex + 1} ${questions[currentIndex].question}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Normal
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Options
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val opts = questions[currentIndex].options
+                    opts.forEachIndexed { idx, option ->
+                        val selected = perQuestionSelected[currentIndex] == idx
+                        val submitted = perQuestionSubmitted[currentIndex]
+
+                        // outline color changes when selected or when submitted + selected
+                        val borderColor by animateColorAsState(
+                            targetValue = when {
+                                submitted && selected -> purple
+                                selected -> Color(0xFF3A86FF) // selection color (blue-ish)
+                                else -> Color(0xFFBDBDBD)
+                            }
+                        )
+
+                        OutlinedOption(
+                            letter = ('A' + idx).toString() + ".",
+                            text = option,
+                            onClick = {
+                                // only allow selection when not submitted
+                                if (!submitted) {
+                                    perQuestionSelected[currentIndex] = idx
+                                }
+                            },
+                            selected = selected,
+                            borderColor = borderColor,
+                            enabled = !submitted
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(88.dp))
+
+                // Submit / Submitted button
+                val isSubmitted = perQuestionSubmitted[currentIndex]
+                val selectedIndex = perQuestionSelected[currentIndex]
+
+                val buttonColors = if (isSubmitted) {
+                    ButtonDefaults.buttonColors(
+                        containerColor = purple.copy(alpha = 0.8f),
+                        disabledContainerColor = purple.copy(alpha = 0.8f)
+                    )
+                } else {
+                    ButtonDefaults.buttonColors(
+                        containerColor = purple,
+                        disabledContainerColor = Color(0xFFE8D8FF)
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        // if not yet submitted, submit now
+                        if (!isSubmitted) {
+                            perQuestionSubmitted[currentIndex] = true
+                        }
+                    },
+                    enabled = (selectedIndex != null) && !isSubmitted,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterHorizontally),
+                    colors = buttonColors
+                ) {
+                    Text(
+                        text = if (isSubmitted) "Submitted \u2713" else "Submit",
+                        fontSize = 18.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Navigation: Prev / Next
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = { if (currentIndex > 0) currentIndex-- },
+                        enabled = currentIndex > 0
+                    ) { Text("Previous", fontSize = 16.sp) }
+
+                    TextButton(
+                        onClick = {
+                            if (currentIndex < questions.lastIndex) {
+                                currentIndex++
+                            } else {
+                                // last question -> finish
+                                onFinish()
+                            }
+                        }
+                    ) { Text(if (currentIndex < questions.lastIndex) "Next" else "Finish", fontSize = 16.sp) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OutlinedOption(
+    letter: String,
+    text: String,
+    onClick: () -> Unit,
+    selected: Boolean,
+    borderColor: Color,
+    enabled: Boolean
+) {
+    val background = if (selected) Color(0xFFF6F6FF) else Color.White
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        shadowElevation = 0.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp)
+            .border(BorderStroke(2.dp, borderColor), shape = RoundedCornerShape(8.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        color = background
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = letter, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = text)
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+fun QuizScreenPreview() {
+    QuizScreen()
 }
