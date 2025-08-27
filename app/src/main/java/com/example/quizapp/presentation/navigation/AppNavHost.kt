@@ -3,15 +3,19 @@ package com.example.quizapp.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.quizapp.data.DataStoreManager
 import com.example.quizapp.data.api.ApiClient
 import com.example.quizapp.presentation.auth.*
 import com.example.quizapp.presentation.home.*
 import com.example.quizapp.presentation.quiz.*
 import com.example.quizapp.data.models.LeaderboardEntry
+import com.example.quizapp.data.repository.HomeRepository
 import com.example.quizapp.data.repository.QuizRepository
 
 @Composable
@@ -21,6 +25,11 @@ fun AppNavHost(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(QuizRepository(ApiClient.apiService))
     )
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(HomeRepository(ApiClient.apiService))
+    )
+    val context = LocalContext.current
+    val dataStoreManager = remember { DataStoreManager(context) }
 
 
     NavHost(
@@ -51,12 +60,37 @@ fun AppNavHost(navController: NavHostController) {
             }
         }
 
-        // 🔹 HOME
         composable(NavRoutes.HOME) {
+
             HomeScreen(
-                onCreateQuiz = { navController.navigate(NavRoutes.CREATE_QUIZ) },
-                onJoinQuiz = { navController.navigate(NavRoutes.JOIN_QUIZ) },
-                performance = "Loading..." // later connect to HomeViewModel
+                homeViewModel = homeViewModel,
+                dataStoreManager = dataStoreManager,
+                // 🔹 Handle Join Quiz
+                onJoinQuiz = {
+                    navController.navigate(NavRoutes.JOIN_QUIZ)
+                },
+
+                // 🔹 Floating Action Button (create quiz)
+                onFabClick = {
+                    navController.navigate(NavRoutes.CREATE_QUIZ)
+                },
+
+                // 🔹 Bottom navigation tabs
+                onNavHome = {
+                    navController.navigate(NavRoutes.HOME) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavLibrary = {
+                    navController.navigate(NavRoutes.LIBRARY)
+                },
+                onNavLeaderboard = {
+                    navController.navigate(NavRoutes.LEADERBOARD)
+                },
+                onNavMe = {
+                    navController.navigate(NavRoutes.PROFILE)
+                }
             )
         }
 

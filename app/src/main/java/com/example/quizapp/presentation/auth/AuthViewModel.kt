@@ -15,11 +15,11 @@ class AuthViewModel(private val repository: QuizRepository) : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
-    fun login(username: String, password: String) {
+    fun login(scholarId: String, password: String) {
         viewModelScope.launch {
             try {
                 _authState.value = AuthState.Loading
-                val response = repository.login(LoginRequest(username, password))
+                val response = repository.login(LoginRequest(scholarId, password))
                 _authState.value = AuthState.Success(response.token)
                 Log.d("LoginTest", "Login success: $response")
             } catch (e: Exception) {

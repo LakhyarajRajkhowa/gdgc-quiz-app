@@ -7,7 +7,7 @@ data class User(
 )
 
 data class LoginRequest(
-    val username: String,
+    val scholarId: String,
     val password: String
 )
 

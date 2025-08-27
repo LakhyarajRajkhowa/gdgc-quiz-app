@@ -8,4 +8,7 @@ object NavRoutes {
     const val JOIN_QUIZ = "join_quiz"
     const val LIVE_QUIZ = "live_quiz"
     const val LEADERBOARD = "leaderboard"
+    const val PROFILE = "profile"
+    const val LIBRARY = "library"
+
 }

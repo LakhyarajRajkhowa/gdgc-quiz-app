@@ -21,4 +21,11 @@ interface ApiService {
 
     @GET("user/performance")
     suspend fun getPerformance(): PerformanceResponse
+
+    @GET("home")
+    suspend fun getHomeData(@Header("Authorization") token: String): HomeResponse
+
+    @GET("dailyChallenge")
+    suspend fun getDailyChallenge(): DailyChallengeResponse
+
 }

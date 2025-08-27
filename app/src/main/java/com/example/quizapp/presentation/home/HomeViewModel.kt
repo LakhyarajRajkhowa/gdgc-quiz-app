@@ -1,25 +1,44 @@
 package com.example.quizapp.presentation.home
 
+import HomeUiState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.quizapp.data.models.PerformanceResponse
-import com.example.quizapp.data.repository.QuizRepository
+import com.example.quizapp.data.repository.HomeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val repository: QuizRepository) : ViewModel() {
+class HomeViewModel(
+    private val repository: HomeRepository
+) : ViewModel() {
 
-    private val _performance = MutableStateFlow<PerformanceResponse?>(null)
-    val performance: StateFlow<PerformanceResponse?> = _performance
+    private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
+    val uiState: StateFlow<HomeUiState> = _uiState
 
-    fun loadPerformance() {
+    fun loadHomeData(token: String) {
         viewModelScope.launch {
             try {
-                val data = repository.getPerformance()
-                _performance.value = data
+                _uiState.value = HomeUiState(isLoading = true)
+
+                val response = repository.getHomeData(token)
+                val challenge = repository.getDailyChallenge()
+
+                _uiState.value = HomeUiState(
+                    username = response.username,
+                    liveQuizTitle = response.liveQuizTitle,
+                    progressPercent = response.progressPercent,
+                    ranking = response.ranking,
+                    totalScore = response.totalScore,
+                    quizzesAttempted = response.quizzesAttempted,
+                    coins = response.coins,
+                    dailyChallenge = challenge,
+                    isLoading = false
+                )
             } catch (e: Exception) {
-                // handle error, maybe set _performance.value = null
+                _uiState.value = HomeUiState(
+                    isLoading = false,
+                    error = e.message ?: "Unknown error"
+                )
             }
         }
     }
