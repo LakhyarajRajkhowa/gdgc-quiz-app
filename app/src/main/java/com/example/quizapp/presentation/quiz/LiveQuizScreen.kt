@@ -45,18 +45,6 @@ private val sampleQuestions = listOf(
     Question(3, "What is 2 + 2?", listOf("3", "4", "5", "22"), 1)
 )
 
-
-
-@Composable
-fun LiveQuizScreen(question: String, options: List<String>, onAnswer: (Int) -> Unit) {
-    Column {
-        Text("Question: $question")
-        options.forEachIndexed { index, option ->
-            Button(onClick = { onAnswer(index) }) { Text(option) }
-        }
-    }
-}
-
 @Composable
 fun QuizStartScreen(
     totalQuestions: Int = 2,
@@ -183,7 +171,7 @@ fun QuizScreen(
     var timeLeft by rememberSaveable { mutableStateOf(30) } // 30 seconds per question
     var timerActive by rememberSaveable { mutableStateOf(true) }
 
-    val purple = Color(0xFF8A4BDA)
+    val purple = Color(0xFF7D4CFF)
     val correctGreen = Color(0xFF4CAF50) // Define here
     val incorrectRed = Color(0xFFF44336) // Define here
 
