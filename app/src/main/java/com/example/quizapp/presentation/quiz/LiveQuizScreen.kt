@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.quizapp.R
 import com.example.quizapp.data.models.Question
+import kotlinx.coroutines.delay
 
 
 private val sampleQuestions = listOf(
@@ -176,10 +177,33 @@ fun QuizScreen(
 ) {
     val perQuestionSelected = remember { mutableStateListOf<Int?>().apply { repeat(questions.size) { add(null) } } }
     val perQuestionSubmitted = remember { mutableStateListOf<Boolean>().apply { repeat(questions.size) { add(false) } } }
+    val perQuestionTimeUp = remember { mutableStateListOf<Boolean>().apply { repeat(questions.size) { add(false) } } }
 
     var currentIndex by rememberSaveable { mutableStateOf(0) }
+    var timeLeft by rememberSaveable { mutableStateOf(30) } // 30 seconds per question
+    var timerActive by rememberSaveable { mutableStateOf(true) }
 
     val purple = Color(0xFF8A4BDA)
+    val correctGreen = Color(0xFF4CAF50) // Define here
+    val incorrectRed = Color(0xFFF44336) // Define here
+
+    // Timer LaunchedEffect
+    LaunchedEffect(key1 = currentIndex, key2 = timerActive) {
+        timeLeft = 30 // Reset timer when question changes
+        perQuestionTimeUp[currentIndex] = false
+        timerActive = true
+
+        while (timeLeft > 0 && timerActive) {
+            delay(1000L)
+            timeLeft--
+        }
+
+        if (timeLeft == 0 && timerActive) {
+            perQuestionTimeUp[currentIndex] = true
+            perQuestionSubmitted[currentIndex] = true
+            timerActive = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -206,7 +230,11 @@ fun QuizScreen(
 
                 // Timer + icon
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "00:30", fontSize = 18.sp)
+                    Text(
+                        text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+                        fontSize = 18.sp,
+                        color = if (timeLeft <= 5) Color.Red else Color.Black
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Image(
@@ -226,36 +254,53 @@ fun QuizScreen(
                     fontWeight = FontWeight.Normal
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Get current question details
+                val currentQuestion = questions[currentIndex]
+                val correctAnswerIndex = currentQuestion.correctIndex
+                val opts = currentQuestion.options
+                val timeUp = perQuestionTimeUp[currentIndex]
+                val submitted = perQuestionSubmitted[currentIndex]
+                val selectedIndex = perQuestionSelected[currentIndex]
 
                 // Options
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val opts = questions[currentIndex].options
                     opts.forEachIndexed { idx, option ->
-                        val selected = perQuestionSelected[currentIndex] == idx
-                        val submitted = perQuestionSubmitted[currentIndex]
+                        val selected = selectedIndex == idx
 
-                        // outline color changes when selected or when submitted + selected
-                        val borderColor by animateColorAsState(
-                            targetValue = when {
-                                submitted && selected -> purple
-                                selected -> Color(0xFF3A86FF) // selection color (blue-ish)
-                                else -> Color(0xFFBDBDBD)
+                        val borderColor = when {
+                            timeUp || submitted -> {
+                                if (idx == correctAnswerIndex) {
+                                    correctGreen
+                                } else if (selected && idx != correctAnswerIndex) {
+                                    incorrectRed
+                                } else {
+                                    Color(0xFFBDBDBD) // Default border
+                                }
                             }
-                        )
+                            selected -> Color(0xFF3A86FF)
+                            else -> Color(0xFFBDBDBD)
+                        }
 
                         OutlinedOption(
                             letter = ('A' + idx).toString() + ".",
                             text = option,
                             onClick = {
-                                // only allow selection when not submitted
-                                if (!submitted) {
+                                // only allow selection when not submitted and time not up
+                                if (!submitted && !timeUp) {
                                     perQuestionSelected[currentIndex] = idx
                                 }
                             },
                             selected = selected,
                             borderColor = borderColor,
-                            enabled = !submitted
+                            enabled = !submitted && !timeUp,
+                            correctGreen = correctGreen,
+                            incorrectRed = incorrectRed,
+                            showIndicator = timeUp || submitted,
+                            isCorrectAnswer = idx == correctAnswerIndex,
+                            isIncorrectSelected = selected && idx != correctAnswerIndex,
+                            timeUp = timeUp
                         )
                     }
                 }
@@ -264,39 +309,34 @@ fun QuizScreen(
 
                 // Submit / Submitted button
                 val isSubmitted = perQuestionSubmitted[currentIndex]
-                val selectedIndex = perQuestionSelected[currentIndex]
-
-                val buttonColors = if (isSubmitted) {
-                    ButtonDefaults.buttonColors(
-                        containerColor = purple.copy(alpha = 0.8f),
-                        disabledContainerColor = purple.copy(alpha = 0.8f)
-                    )
-                } else {
-                    ButtonDefaults.buttonColors(
-                        containerColor = purple,
-                        disabledContainerColor = Color(0xFFE8D8FF)
-                    )
-                }
 
                 Button(
                     onClick = {
                         // if not yet submitted, submit now
-                        if (!isSubmitted) {
+                        if (!isSubmitted && !timeUp) {
                             perQuestionSubmitted[currentIndex] = true
+                            timerActive = false
                         }
                     },
-                    enabled = (selectedIndex != null) && !isSubmitted,
+                    enabled = (selectedIndex != null) && !isSubmitted && !timeUp,
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .height(48.dp)
                         .fillMaxWidth(0.5f)
                         .align(Alignment.CenterHorizontally),
-                    colors = buttonColors
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isSubmitted || timeUp) purple.copy(alpha = 0.8f) else purple,
+                        disabledContainerColor = Color(0xFFE8D8FF)
+                    )
                 ) {
                     Text(
-                        text = if (isSubmitted) "Submitted \u2713" else "Submit",
-                        fontSize = 18.sp,
+                        text = when {
+                            timeUp -> "Time's Up!"
+                            isSubmitted -> "Submitted \u2713"
+                            else -> "Submit"
+                        },
                         color = Color.White,
+                        fontSize = 20.sp,
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
@@ -310,19 +350,26 @@ fun QuizScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(
-                        onClick = { if (currentIndex > 0) currentIndex-- },
-                        enabled = currentIndex > 0
+                        onClick = {
+                            if (currentIndex > 0) {
+                                currentIndex--
+                                timerActive = true // Restart timer for previous question
+                            }
+                        },
+                        enabled = currentIndex > 0 && (timeUp || isSubmitted)
                     ) { Text("Previous", fontSize = 16.sp) }
 
                     TextButton(
                         onClick = {
                             if (currentIndex < questions.lastIndex) {
                                 currentIndex++
+                                timerActive = true // Restart timer for next question
                             } else {
                                 // last question -> finish
                                 onFinish()
                             }
-                        }
+                        },
+                        enabled = timeUp || isSubmitted
                     ) { Text(if (currentIndex < questions.lastIndex) "Next" else "Finish", fontSize = 16.sp) }
                 }
             }
@@ -337,7 +384,13 @@ private fun OutlinedOption(
     onClick: () -> Unit,
     selected: Boolean,
     borderColor: Color,
-    enabled: Boolean
+    enabled: Boolean,
+    correctGreen: Color,
+    incorrectRed: Color,
+    showIndicator: Boolean,
+    isCorrectAnswer: Boolean,
+    isIncorrectSelected: Boolean,
+    timeUp: Boolean
 ) {
     val background = if (selected) Color(0xFFF6F6FF) else Color.White
     Surface(
@@ -354,7 +407,25 @@ private fun OutlinedOption(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = letter, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = text)
+            Text(text = text, fontSize = 17.sp)
+
+            if (timeUp && showIndicator) {
+                Spacer(modifier = Modifier.weight(1f))
+                when {
+                    isCorrectAnswer -> Text(
+                        text = "✓",
+                        color = correctGreen,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    isIncorrectSelected -> Text(
+                        text = "✗",
+                        color = incorrectRed,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+            }
         }
     }
 }
