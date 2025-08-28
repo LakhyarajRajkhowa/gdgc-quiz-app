@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt)           // NEW: Hilt plugin
-    kotlin("kapt")
+              // NEW: Hilt plugin
+
     // For Hilt annotation processing
 }
 
@@ -75,12 +75,9 @@ dependencies {
     // Room (SQLite ORM)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
 
-    // Hilt for DI
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+
+
 
     // Datastore (for tokens, preferences)
     implementation(libs.datastore.preferences)

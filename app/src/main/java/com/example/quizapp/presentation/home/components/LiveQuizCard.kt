@@ -19,7 +19,7 @@ private val SoftYellow = Color(0xFFF6C66B)
 
 @Composable
 fun LiveQuizCard(title: String?, onJoinQuiz: () -> Unit) {
-    if (title == null) return
+    // if (title == null) return
 
     Card(
         modifier = Modifier
@@ -50,7 +50,7 @@ fun LiveQuizCard(title: String?, onJoinQuiz: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "XYZ's Quiz is Live Now!",
+                    text = "${title} is Live Now!",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -41,7 +41,8 @@ fun HomeScreen(
     onNavHome: () -> Unit = {},
     onNavLibrary: () -> Unit = {},
     onNavLeaderboard: () -> Unit = {},
-    onNavMe: () -> Unit = {}
+    onNavMe: () -> Unit = {},
+    onGetStartedClick: () -> Unit = {}
 ) {
     val state by homeViewModel.uiState.collectAsState()
     var selectedItem by remember { mutableStateOf(BottomNavItem.HOME) } // <-- FIXED
@@ -103,7 +104,8 @@ fun HomeScreen(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.White)
                     .padding(top = 18.dp, bottom = 18.dp, start = 14.dp, end = 14.dp)
-            ){LiveQuizCard(
+            ){
+                LiveQuizCard(
                 title = state.liveQuizTitle,
                 onJoinQuiz = onJoinQuiz
             )
@@ -117,10 +119,19 @@ fun HomeScreen(
                 )
 
                 DailyChallengeCard(
-                    challengeText = state.dailyChallenge ?: "No challenge today"
-                )}
+                    challengeText = state.dailyChallenge ?: "No challenge today",
+                    onGetStartedClick = onGetStartedClick
+                )
+            }
 
         }
     }
 }
 
+@Preview
+@Composable
+fun previewHomescreen(){
+    MaterialTheme {
+        HomeScreenUi(onJoinQuiz = {}, onFabClick = {}, performance = "65%")
+    }
+}

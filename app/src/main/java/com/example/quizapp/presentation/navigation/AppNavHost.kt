@@ -9,14 +9,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.quizapp.data.DailyQuizApi.DailyQuizApiClient
 import com.example.quizapp.data.DataStoreManager
 import com.example.quizapp.data.api.ApiClient
 import com.example.quizapp.presentation.auth.*
 import com.example.quizapp.presentation.home.*
 import com.example.quizapp.presentation.quiz.*
 import com.example.quizapp.data.models.LeaderboardEntry
+import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.repository.HomeRepository
 import com.example.quizapp.data.repository.QuizRepository
+import com.example.quizapp.presentation.DailyQuiz.DailyQuizScreen
+import com.example.quizapp.presentation.DailyQuiz.DailyQuizViewModel
+import com.example.quizapp.presentation.DailyQuiz.DailyQuizViewModelFactory
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -27,6 +32,10 @@ fun AppNavHost(navController: NavHostController) {
     )
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(HomeRepository(ApiClient.apiService))
+    )
+
+    val dailyQuizViewModel: DailyQuizViewModel = viewModel(
+        factory = DailyQuizViewModelFactory(DailyQuizRepository(DailyQuizApiClient.dailyQuizApiService))
     )
     val context = LocalContext.current
     val dataStoreManager = remember { DataStoreManager(context) }
@@ -90,8 +99,16 @@ fun AppNavHost(navController: NavHostController) {
                 },
                 onNavMe = {
                     navController.navigate(NavRoutes.PROFILE)
+                },
+                onGetStartedClick = {
+                    navController.navigate(NavRoutes.DAILY_QUIZ)
                 }
             )
+        }
+
+        // DAILY QUIZ
+        composable(NavRoutes.DAILY_QUIZ) {
+            DailyQuizScreen(viewModel = dailyQuizViewModel)
         }
 
         // 🔹 CREATE QUIZ

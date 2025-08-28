@@ -10,14 +10,14 @@ interface ApiService {
     @POST("auth/login")
     suspend fun login(@Body credentials: LoginRequest): LoginResponse
 
-    @POST("quiz/create")
-    suspend fun createQuiz(@Body quiz: Quiz): ApiResponse
+   // @POST("quiz/create")
+    //suspend fun createQuiz(@Body quiz: Quiz): ApiResponse
 
-    @POST("quiz/join")
-    suspend fun joinQuiz(@Body request: JoinQuizRequest): ApiResponse
+    //@POST("quiz/join")
+   // suspend fun joinQuiz(@Body request: JoinQuizRequest): ApiResponse
 
-    @GET("quiz/{code}")
-    suspend fun getQuiz(@Path("code") code: String): Quiz
+   // @GET("quiz/{code}")
+   // suspend fun getQuiz(@Path("code") code: String): Quiz
 
     @GET("user/performance")
     suspend fun getPerformance(): PerformanceResponse

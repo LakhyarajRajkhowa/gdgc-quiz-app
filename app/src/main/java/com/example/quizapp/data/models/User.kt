@@ -12,6 +12,8 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val token: String,
-    val message: String
+    val userId: String,
+    val scholarId: String,
+    val username: String,
+    val token: String
 )

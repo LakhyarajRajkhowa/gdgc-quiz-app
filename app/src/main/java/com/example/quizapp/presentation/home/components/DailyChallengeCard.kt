@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.example.quizapp.R
 
 @Composable
-fun DailyChallengeCard(challengeText: String) {
+fun DailyChallengeCard(challengeText: String, onGetStartedClick: () -> Unit = {} ) {
     Text("Daily Challenges", fontWeight = FontWeight.SemiBold)
     Spacer(modifier = Modifier.height(5.dp))
 
@@ -39,7 +39,7 @@ fun DailyChallengeCard(challengeText: String) {
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
-                    onClick = { /* start */ },
+                    onClick =  onGetStartedClick ,
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black,
