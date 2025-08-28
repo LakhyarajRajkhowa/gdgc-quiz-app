@@ -51,6 +51,7 @@ import com.example.quizapp.R
 import com.example.quizapp.presentation.auth.RegisterStep
 import kotlinx.coroutines.launch
 import androidx.compose.ui.window.Dialog
+import com.example.quizapp.presentation.quiz.CreateQuizCodeDialog
 
 private val Purple1 = Color(0xFF7D4CFF)
 private val Purple2 = Color(0xFF6A3DF0)
@@ -76,6 +77,8 @@ fun HomeScreenUi(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showJoinDialog by remember { mutableStateOf(false) }
+    var showCreateQuizCodeDialog by remember { mutableStateOf(false) }
+
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -108,6 +111,16 @@ fun HomeScreenUi(
             }
         )
     }
+
+    if (showCreateQuizCodeDialog) {
+        CreateQuizCodeDialog(
+            code = "8YLCZP",
+            onDismiss = { showCreateQuizCodeDialog = false },
+            onCopy = { /* copy logic */ },
+            onShare = { /* share logic */ }
+        )
+    }
+
 
     Scaffold(
         floatingActionButton = {

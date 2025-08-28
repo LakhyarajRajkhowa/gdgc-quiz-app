@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
@@ -422,4 +423,60 @@ private fun OutlinedOption(
 @Composable
 fun QuizScreenPreview() {
     QuizScreen()
+}
+
+@Preview()
+@Composable
+fun LeaveQuizDialogPreview() {
+    MaterialTheme {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = Color(0xFFFFA000),
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        "Wait, You are almost there! Don’t give up",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.fillMaxWidth(1f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    ) {
+                        Text("Continue", color = Color.White, fontSize = 16.sp)
+                    }
+
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                    ) {
+                        Text("Leave Quiz", color = Color.White, fontSize = 16.sp)
+                    }
+                }
+            }
+        }
+    }
 }

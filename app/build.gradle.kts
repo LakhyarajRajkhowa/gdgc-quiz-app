@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.quizapp"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.foundation.layout)
     implementation(libs.material3)
+    implementation(libs.androidx.compose.material3)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)

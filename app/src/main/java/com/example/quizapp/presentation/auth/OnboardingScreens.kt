@@ -1,6 +1,7 @@
 package com.example.quizapp.presentation.auth
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -99,8 +100,9 @@ fun OnboardingScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF7D4CFF),
+                    border = BorderStroke(2.dp, Color.White),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Transparent,
                         contentColor = Color.White
                     )
                 ) {
