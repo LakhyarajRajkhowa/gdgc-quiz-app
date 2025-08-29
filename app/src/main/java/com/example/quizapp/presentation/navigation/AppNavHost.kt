@@ -7,8 +7,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.quizapp.data.DailyQuizApi.DailyQuizApiClient
 import com.example.quizapp.data.DataStoreManager
 import com.example.quizapp.data.api.ApiClient
@@ -19,9 +21,9 @@ import com.example.quizapp.data.models.LeaderboardEntry
 import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.repository.HomeRepository
 import com.example.quizapp.data.repository.QuizRepository
-import com.example.quizapp.presentation.DailyQuiz.DailyQuizScreen
-import com.example.quizapp.presentation.DailyQuiz.DailyQuizViewModel
-import com.example.quizapp.presentation.DailyQuiz.DailyQuizViewModelFactory
+import com.example.quizapp.R
+
+
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -43,8 +45,53 @@ fun AppNavHost(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = NavRoutes.LOGIN
+        startDestination = NavRoutes.ONBOARDING1
     ) {
+        composable(NavRoutes.ONBOARDING1) {
+            OnboardingScreen(
+                imageRes = R.drawable.onboarding1,
+                title = "Let’s get started!",
+                button1Text = "Next",
+                onButton1Click = { navController.navigate(NavRoutes.ONBOARDING2) },
+                button2Text = "Login",
+                onButton2Click = { navController.navigate(NavRoutes.LOGIN) }
+            )
+        }
+
+        composable(NavRoutes.ONBOARDING2) {
+            OnboardingScreen(
+                imageRes = R.drawable.onboarding2,
+                title = "Stay motivated!",
+                description = "Track your progress and keep improving...",
+                button1Text = "Next",
+                onButton1Click = { navController.navigate(NavRoutes.ONBOARDING3) }
+            )
+        }
+
+        composable(NavRoutes.ONBOARDING3) {
+            OnboardingScreen(
+                imageRes = R.drawable.onboarding3,
+                title = "Challenge yourself!",
+                description = "Compete in quizzes and test your knowledge.",
+                button1Text = "Next",
+                onButton1Click = { navController.navigate(NavRoutes.ONBOARDING4) }
+            )
+        }
+
+        composable(NavRoutes.ONBOARDING4) {
+            OnboardingScreen(
+                imageRes = R.drawable.onboarding4,
+                title = "Welcome!",
+                description = "Let’s begin your journey with us.",
+                button1Text = "Get Started!",
+                onButton1Click = {
+                    // Replace onboarding with login (so users can’t go back)
+                    navController.navigate(NavRoutes.LOGIN) {
+                        popUpTo(NavRoutes.ONBOARDING1) { inclusive = true }
+                    }
+                }
+            )
+        }
         // 🔹 LOGIN
         composable(NavRoutes.LOGIN) {
             LoginScreen(
@@ -107,46 +154,80 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         // DAILY QUIZ
+        // DAILY QUIZ
         composable(NavRoutes.DAILY_QUIZ) {
-            DailyQuizScreen(viewModel = dailyQuizViewModel)
+            QuizRoute(
+                onBack = { navController.popBackStack() },
+                onGoHome = { navController.navigate(NavRoutes.HOME) {
+                    popUpTo(NavRoutes.HOME) { inclusive = true }
+                }
+                },
+                onViewLeaderboard = {}
+            )
         }
+
+//        composable(
+//            route = "${NavRoutes.TOTAL_SCORE}/{score}/{total}",
+//            arguments = listOf(
+//                navArgument("score") { type = NavType.IntType },
+//                navArgument("total") { type = NavType.IntType }
+//            )
+//        ) { backStackEntry ->
+//            val score = backStackEntry.arguments?.getInt("score") ?: 0
+//            val total = backStackEntry.arguments?.getInt("total") ?: 0
+//
+//            QuizCompletedScreen(
+//                score = score,
+//                totalScore = total,
+//                onViewLeaderboard = {},
+//                onGoHome = {
+//                    navController.navigate(NavRoutes.HOME) {
+//                        popUpTo(NavRoutes.HOME) { inclusive = true }
+//                    }
+//                }
+//            )
+//        }
+
+
+
+
 
         // 🔹 CREATE QUIZ
-        composable(NavRoutes.CREATE_QUIZ) {
-            CreateQuizScreen(onCreate = { name, count ->
-                // TODO: QuizViewModel.createQuiz()
-                navController.navigate(NavRoutes.HOME)
-            })
-        }
+//        composable(NavRoutes.CREATE_QUIZ) {
+//            CreateQuizScreen(onCreate = { name, count ->
+//                // TODO: QuizViewModel.createQuiz()
+//                navController.navigate(NavRoutes.HOME)
+//            })
+//        }
 
         // 🔹 JOIN QUIZ
-        composable(NavRoutes.JOIN_QUIZ) {
-            JoinQuizScreen(onJoin = { code ->
-                // TODO: QuizViewModel.joinQuiz()
-                navController.navigate(NavRoutes.LIVE_QUIZ)
-            })
-        }
+//        composable(NavRoutes.JOIN_QUIZ) {
+//            JoinQuizScreen(onJoin = { code ->
+//                // TODO: QuizViewModel.joinQuiz()
+//                navController.navigate(NavRoutes.LIVE_QUIZ)
+//            })
+//        }
 
         // 🔹 LIVE QUIZ
-        composable(NavRoutes.LIVE_QUIZ) {
-            LiveQuizScreen(
-                question = "Sample Question?",
-                options = listOf("A", "B", "C", "D"),
-                onAnswer = { index ->
-                    // TODO: QuizViewModel.answerQuestion(index)
-                    navController.navigate(NavRoutes.LEADERBOARD)
-                }
-            )
-        }
+//        composable(NavRoutes.LIVE_QUIZ) {
+//            LiveQuizScreen(
+//                question = "Sample Question?",
+//                options = listOf("A", "B", "C", "D"),
+//                onAnswer = { index ->
+//                    // TODO: QuizViewModel.answerQuestion(index)
+//                    navController.navigate(NavRoutes.LEADERBOARD)
+//                }
+//            )
+//        }
 
         // 🔹 LEADERBOARD
-        composable(NavRoutes.LEADERBOARD) {
-            LeaderboardScreen(
-                entries = listOf(
-                    LeaderboardEntry("Alice", 50),
-                    LeaderboardEntry("Bob", 40)
-                )
-            )
-        }
+//        composable(NavRoutes.LEADERBOARD) {
+//            LeaderboardScreen(
+//                entries = listOf(
+//                    LeaderboardEntry("Alice", 50),
+//                    LeaderboardEntry("Bob", 40)
+//                )
+//            )
+//        }
     }
 }

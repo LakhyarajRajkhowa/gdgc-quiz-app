@@ -1,61 +1,40 @@
-package com.example.quizapp.presentation.DailyQuiz
+package com.example.quizapp.presentation.quiz
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.quizapp.data.DailyQuizApi.QuizItem
 import com.example.quizapp.data.repository.DailyQuizRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.quizapp.data.mapper.toQuestion
+import com.example.quizapp.data.models.Question
 import kotlinx.coroutines.launch
 
+class DailyQuizViewModel(private val repository: DailyQuizRepository) : ViewModel() {
 
-class DailyQuizViewModel(private val dailyQuizRepository: DailyQuizRepository) : ViewModel() {
+    var quizQuestions = mutableStateOf<List<Question>>(emptyList())
+        private set
 
-    private val _uiState = MutableStateFlow<DailyChallengeState>(DailyChallengeState.Idle)
-    val uiState: StateFlow<DailyChallengeState> = _uiState
+    var isLoading = mutableStateOf(true)
+        private set
 
-    fun startChallenge() {
+    var errorMessage = mutableStateOf<String?>(null)
+        private set
+
+    init {
+        loadQuiz()
+    }
+
+    private fun loadQuiz(amount: Int = 10) {
         viewModelScope.launch {
-            _uiState.value = DailyChallengeState.Loading
             try {
-                val quizzes = dailyQuizRepository.fetchQuizzes()
-                _uiState.value = DailyChallengeState.Loaded(quizzes, 0, 30)
+                isLoading.value = true
+                val items = repository.fetchQuizzes(amount)
+                quizQuestions.value = items.map { it.toQuestion() }
+                errorMessage.value = null
             } catch (e: Exception) {
-                _uiState.value = DailyChallengeState.Error("Failed to load quizzes")
+                errorMessage.value = e.message
+            } finally {
+                isLoading.value = false
             }
         }
     }
-
-    fun nextQuestion() {
-        val current = _uiState.value
-        if (current is DailyChallengeState.Loaded) {
-            val nextIndex = current.currentIndex + 1
-            if (nextIndex < current.quizzes.size) {
-                _uiState.value = current.copy(currentIndex = nextIndex, timer = 30)
-            } else {
-                _uiState.value = DailyChallengeState.Finished
-            }
-        }
-    }
-
-    fun tickTimer() {
-        val current = _uiState.value
-        if (current is DailyChallengeState.Loaded && current.timer > 0) {
-            _uiState.value = current.copy(timer = current.timer - 1)
-        } else if (current is DailyChallengeState.Loaded && current.timer == 0) {
-            nextQuestion()
-        }
-    }
-}
-
-sealed class DailyChallengeState {
-    object Idle : DailyChallengeState()
-    object Loading : DailyChallengeState()
-    data class Loaded(
-        val quizzes: List<QuizItem>,
-        val currentIndex: Int,
-        val timer: Int
-    ) : DailyChallengeState()
-    object Finished : DailyChallengeState()
-    data class Error(val message: String) : DailyChallengeState()
 }

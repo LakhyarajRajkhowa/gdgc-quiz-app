@@ -1,6 +1,10 @@
 package com.example.quizapp.presentation.navigation
 
 object NavRoutes {
+    const val ONBOARDING1 = "onboarding1"
+    const val ONBOARDING2 = "onboarding2"
+    const val ONBOARDING3 = "onboarding3"
+    const val ONBOARDING4 = "onboarding4"
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val HOME = "home"

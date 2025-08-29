@@ -1,19 +1,16 @@
-package com.example.quizapp.presentation.DailyQuiz
-
-
+package com.example.quizapp.presentation.quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.quizapp.data.repository.DailyQuizRepository
 
 class DailyQuizViewModelFactory(
-    private val dailyQuizRepository: DailyQuizRepository
+    private val repository: DailyQuizRepository
 ) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DailyQuizViewModel::class.java)) {
-            return DailyQuizViewModel(dailyQuizRepository) as T
+            @Suppress("UNCHECKED_CAST")
+            return DailyQuizViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

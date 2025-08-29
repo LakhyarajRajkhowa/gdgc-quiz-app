@@ -2,14 +2,19 @@ package com.example.quizapp.presentation.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -17,22 +22,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.VectorPainter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import com.example.quizapp.R
+import com.example.quizapp.presentation.auth.RegisterStep
+import kotlinx.coroutines.launch
+import androidx.compose.ui.window.Dialog
+import com.example.quizapp.presentation.quiz.CreateQuizCodeDialog
 
 private val Purple1 = Color(0xFF7D4CFF)
 private val Purple2 = Color(0xFF6A3DF0)
@@ -42,9 +61,10 @@ enum class BottomNavItem {
     HOME, LIBRARY, LEADERBOARD, ME
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenUi(
-    onJoinQuiz: () -> Unit = {},
+    onJoinQuiz: (String) -> Unit = {},
     onFabClick: () -> Unit = {},
     onNavHome: () -> Unit = {},
     onNavLibrary: () -> Unit = {},
@@ -53,11 +73,59 @@ fun HomeScreenUi(
     performance: String = "65%"
 ) {
     var selectedItem by remember { mutableStateOf(BottomNavItem.HOME) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showJoinDialog by remember { mutableStateOf(false) }
+    var showCreateQuizCodeDialog by remember { mutableStateOf(false) }
+
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            QuizOptionsBottomSheet(
+                onCreateQuiz = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                        // Handle create quiz action here
+                    }
+                },
+                onJoinQuiz = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                        showJoinDialog = true
+                    }
+                }
+            )
+        }
+    }
+
+    if (showJoinDialog) {
+        JoinQuizDialog(
+            onDismiss = { showJoinDialog = false },
+            onJoinQuiz = { code ->
+                showJoinDialog = false
+                onJoinQuiz(code)  // Pass the join code to the parent
+            }
+        )
+    }
+
+    if (showCreateQuizCodeDialog) {
+        CreateQuizCodeDialog(
+            code = "8YLCZP",
+            onDismiss = { showCreateQuizCodeDialog = false },
+            onCopy = { /* copy logic */ },
+            onShare = { /* share logic */ }
+        )
+    }
+
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onFabClick,
+                onClick = { showBottomSheet = true },
                 containerColor = Purple1,
                 contentColor = Color.White,
                 modifier = Modifier
@@ -159,7 +227,7 @@ fun HomeScreenUi(
                     .fillMaxWidth()
                     .height(220.dp)
                     .background(
-                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                        brush = Brush.linearGradient(
                             listOf(Purple1, Purple2)
                         )
                     )
@@ -255,7 +323,7 @@ fun HomeScreenUi(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedButton(
-                                onClick = onJoinQuiz,
+                                onClick = { showJoinDialog = true },
                                 shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier.width(110.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
@@ -503,8 +571,200 @@ private fun CircularPercentage(
 
 @Preview
 @Composable
-fun HomeScreenPreview2() {
+fun HomeScreenPreview() {
     MaterialTheme {
         HomeScreenUi(onJoinQuiz = {}, onFabClick = {}, performance = "65%")
     }
 }
+
+@Composable
+fun QuizOptionsBottomSheet(
+    onCreateQuiz: () -> Unit = {},
+    onJoinQuiz: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(
+                start = 10.dp,
+                top = 25.dp,
+                end = 10.dp
+            )
+    ) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = onCreateQuiz,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(bottom = 20.dp, start = 20.dp, end = 20.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF7D4CFF),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Create Quiz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onJoinQuiz,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .padding(bottom = 20.dp, start = 20.dp, end = 20.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF7D4CFF),
+                contentColor = Color.White
+            )
+        ) {
+            Text("Join Quiz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JoinQuizDialog(
+    onDismiss: () -> Unit,
+    onJoinQuiz: (String) -> Unit
+) {
+    var joinCode by remember { mutableStateOf("") }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        JoinQuizDialogContent(
+            joinCode = joinCode,
+            onJoinCodeChange = { joinCode = it },
+            onDismiss = onDismiss,
+            onJoin = { onJoinQuiz(joinCode) }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun JoinQuizDialogContent(
+    joinCode: String,
+    onJoinCodeChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onJoin: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Enter the joining code",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            OutlinedTextField(
+                value = joinCode,
+                onValueChange = onJoinCodeChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                placeholder = {
+                    Text(
+                        text = "Enter code",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Black,
+                    unfocusedIndicatorColor = Color.LightGray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            Button(
+                onClick = onJoin,
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF7D4CFF),
+                    contentColor = Color.White
+                ),
+                enabled = joinCode.isNotBlank()
+            ) {
+                Text(
+                    text = "Join",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+//@Preview()
+//@Composable
+//fun JoinQuizDialogContentPreview() {
+//    var code by remember { mutableStateOf("") }
+//    MaterialTheme {
+//        Box {
+//            JoinQuizDialogContent(
+//                joinCode = code,
+//                onJoinCodeChange = { code = it },
+//                onDismiss = {},
+//                onJoin = {}
+//            )
+//        }
+//    }
+//}
