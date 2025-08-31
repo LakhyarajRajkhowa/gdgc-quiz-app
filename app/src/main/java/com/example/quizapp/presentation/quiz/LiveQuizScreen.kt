@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
@@ -161,41 +164,34 @@ fun QuizScreen(
     onBack: () -> Unit = {},
     onFinish: (score: Int, total: Int) -> Unit = { _, _ -> }
 ) {
-    // 🔹 State for confirmation dialog
     var showLeaveDialog by remember { mutableStateOf(false) }
 
-    // 🔹 Intercept Android back button
-    BackHandler(enabled = true) {
-        showLeaveDialog = true
-    }
+    BackHandler(enabled = true) { showLeaveDialog = true }
 
     val perQuestionSelected = remember { mutableStateListOf<Int?>().apply { repeat(questions.size) { add(null) } } }
     val perQuestionSubmitted = remember { mutableStateListOf<Boolean>().apply { repeat(questions.size) { add(false) } } }
     val perQuestionTimeUp = remember { mutableStateListOf<Boolean>().apply { repeat(questions.size) { add(false) } } }
 
     var currentIndex by rememberSaveable { mutableStateOf(0) }
-    var timeLeft by rememberSaveable { mutableStateOf(30) } // 30 seconds per question
+    var timeLeft by rememberSaveable { mutableStateOf(30) }
     var timerActive by rememberSaveable { mutableStateOf(true) }
 
     val purple = Color(0xFF7D4CFF)
     val correctGreen = Color(0xFF4CAF50)
     val incorrectRed = Color(0xFFF44336)
 
-    // ✅ Progress calculation
     val totalQuestions = questions.size
     val progress = (currentIndex + 1) / totalQuestions.toFloat()
 
-    // 🔹 Timer effect
-    LaunchedEffect(key1 = currentIndex, key2 = timerActive) {
+    // Timer
+    LaunchedEffect(currentIndex, timerActive) {
         timeLeft = 30
         perQuestionTimeUp[currentIndex] = false
         timerActive = true
-
         while (timeLeft > 0 && timerActive) {
             delay(1000L)
             timeLeft--
         }
-
         if (timeLeft == 0 && timerActive) {
             perQuestionTimeUp[currentIndex] = true
             perQuestionSubmitted[currentIndex] = true
@@ -203,15 +199,16 @@ fun QuizScreen(
         }
     }
 
+    val currentQuestion = questions[currentIndex]
+    val selectedIndex = perQuestionSelected[currentIndex]
+    val submitted = perQuestionSubmitted[currentIndex]
+    val timeUp = perQuestionTimeUp[currentIndex]
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    // ✅ Add linear progress bar inside top bar
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         LinearProgressIndicator(
                             progress = progress,
                             modifier = Modifier
@@ -230,146 +227,54 @@ fun QuizScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { showLeaveDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = purple)
             )
         },
-        containerColor = Color.White
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+        bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .align(Alignment.TopCenter)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Timer + icon
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
-                        fontSize = 18.sp,
-                        color = if (timeLeft <= 5) Color.Red else Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Image(
-                        painter = painterResource(id = R.drawable.timer),
-                        contentDescription = "timer",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Question text
-                Text(
-                    text = "${HtmlCompat.fromHtml(questions[currentIndex].question, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()}",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Normal
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                val currentQuestion = questions[currentIndex]
-                val correctAnswerIndex = currentQuestion.correctIndex
-                val opts = currentQuestion.options
-                val timeUp = perQuestionTimeUp[currentIndex]
-                val submitted = perQuestionSubmitted[currentIndex]
-                val selectedIndex = perQuestionSelected[currentIndex]
-
-                // Options
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    opts.forEachIndexed { idx, option ->
-                        val selected = selectedIndex == idx
-
-                        val borderColor = when {
-                            timeUp || submitted -> {
-                                if (idx == correctAnswerIndex) {
-                                    correctGreen
-                                } else if (selected && idx != correctAnswerIndex) {
-                                    incorrectRed
-                                } else {
-                                    Color(0xFFBDBDBD)
-                                }
-                            }
-                            selected -> Color(0xFF3A86FF)
-                            else -> Color(0xFFBDBDBD)
-                        }
-
-                        OutlinedOption(
-                            letter = ('A' + idx).toString() + ".",
-                            text = HtmlCompat.fromHtml(option, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
-                            onClick = {
-                                if (!submitted && !timeUp) {
-                                    perQuestionSelected[currentIndex] = idx
-                                }
-                            },
-                            selected = selected,
-                            borderColor = borderColor,
-                            enabled = !submitted && !timeUp,
-                            correctGreen = correctGreen,
-                            incorrectRed = incorrectRed,
-                            showIndicator = timeUp || submitted,
-                            isCorrectAnswer = idx == correctAnswerIndex,
-                            isIncorrectSelected = selected && idx != correctAnswerIndex,
-                            timeUp = timeUp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(88.dp))
-
-                val isSubmitted = perQuestionSubmitted[currentIndex]
-
+                // Submit button
                 Button(
                     onClick = {
-                        if (!isSubmitted && !timeUp) {
+                        if (!submitted && !timeUp) {
                             perQuestionSubmitted[currentIndex] = true
                             timerActive = false
                         }
                     },
-                    enabled = (selectedIndex != null) && !isSubmitted && !timeUp,
+                    enabled = (selectedIndex != null) && !submitted && !timeUp,
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .height(48.dp)
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.CenterHorizontally),
+                        .fillMaxWidth(0.6f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSubmitted || timeUp) purple.copy(alpha = 0.8f) else purple,
+                        containerColor = if (submitted || timeUp) purple.copy(alpha = 0.8f) else purple,
                         disabledContainerColor = Color(0xFFE8D8FF)
                     )
                 ) {
                     Text(
                         text = when {
                             timeUp -> "Time's Up!"
-                            isSubmitted -> "Submitted ✓"
+                            submitted -> "Submitted ✓"
                             else -> "Submit"
                         },
                         color = Color.White,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        fontSize = 18.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
+                // Navigation buttons
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(
                         onClick = {
@@ -378,8 +283,8 @@ fun QuizScreen(
                                 timerActive = true
                             }
                         },
-                        enabled = currentIndex > 0 && (timeUp || isSubmitted)
-                    ) { Text("Previous", fontSize = 16.sp) }
+                        enabled = currentIndex > 0 && (timeUp || submitted)
+                    ) { Text("Previous") }
 
                     TextButton(
                         onClick = {
@@ -387,34 +292,102 @@ fun QuizScreen(
                                 currentIndex++
                                 timerActive = true
                             } else {
-                                // ✅ Calculate score here
                                 val score = questions.indices.count { idx ->
-                                    perQuestionSubmitted[idx] && perQuestionSelected[idx] == questions[idx].correctIndex
+                                    perQuestionSubmitted[idx] &&
+                                            perQuestionSelected[idx] == questions[idx].correctIndex
                                 }
                                 onFinish(score, questions.size)
                             }
                         },
-                        enabled = timeUp || isSubmitted
-                    ) {
-                        Text(if (currentIndex < questions.lastIndex) "Next" else "Finish", fontSize = 16.sp)
+                        enabled = timeUp || submitted
+                    ) { Text(if (currentIndex < questions.lastIndex) "Next" else "Finish") }
+                }
+            }
+        },
+        containerColor = Color.White
+    ) { innerPadding ->
+        // Scrollable question area
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(Modifier.height(16.dp))
+
+            // Timer
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+                    fontSize = 18.sp,
+                    color = if (timeLeft <= 5) Color.Red else Color.Black
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.timer),
+                    contentDescription = "timer",
+                    modifier = Modifier.size(80.dp)
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // Question text
+            Text(
+                text = HtmlCompat.fromHtml(currentQuestion.question, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Options
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                currentQuestion.options.forEachIndexed { idx, option ->
+                    val correctAnswerIndex = currentQuestion.correctIndex
+                    val selected = selectedIndex == idx
+
+                    val borderColor = when {
+                        timeUp || submitted -> when {
+                            idx == correctAnswerIndex -> correctGreen
+                            selected && idx != correctAnswerIndex -> incorrectRed
+                            else -> Color(0xFFBDBDBD)
+                        }
+                        selected -> Color(0xFF3A86FF)
+                        else -> Color(0xFFBDBDBD)
                     }
+
+                    OutlinedOption(
+                        letter = ('A' + idx).toString() + ".",
+                        text = HtmlCompat.fromHtml(option, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
+                        onClick = { if (!submitted && !timeUp) perQuestionSelected[currentIndex] = idx },
+                        selected = selected,
+                        borderColor = borderColor,
+                        enabled = !submitted && !timeUp,
+                        correctGreen = correctGreen,
+                        incorrectRed = incorrectRed,
+                        showIndicator = timeUp || submitted,
+                        isCorrectAnswer = idx == correctAnswerIndex,
+                        isIncorrectSelected = selected && idx != correctAnswerIndex,
+                        timeUp = timeUp
+                    )
                 }
             }
 
-            // 🔹 Show leave confirmation dialog
-            if (showLeaveDialog) {
-                LeaveQuizDialog(
-                    onContinue = { showLeaveDialog = false },
-                    onLeave = {
-                        showLeaveDialog = false
-                        onBack()
-                    },
-                    onDismiss = { showLeaveDialog = false }
-                )
-            }
+            Spacer(Modifier.height(80.dp)) // keep last option visible above bottomBar
         }
     }
+
+    if (showLeaveDialog) {
+        LeaveQuizDialog(
+            onContinue = { showLeaveDialog = false },
+            onLeave = { showLeaveDialog = false; onBack() },
+            onDismiss = { showLeaveDialog = false }
+        )
+    }
 }
+
 
 @Composable
 private fun OutlinedOption(

@@ -27,7 +27,8 @@ enum class RegisterStep {
 
 @Composable
 fun RegisterScreen(
-    onFinish: (username: String, scholarId: String, password: String) -> Unit
+    onFinish: (username: String, scholarId: String, password: String) -> Unit,
+    onBackToLogin: () -> Unit
 ) {
     var currentStep by remember { mutableStateOf(RegisterStep.USERNAME) }
     var username by remember { mutableStateOf("") }
@@ -37,7 +38,10 @@ fun RegisterScreen(
     // helper to go to previous step when back arrow pressed
     fun goBack() {
         currentStep = when (currentStep) {
-            RegisterStep.USERNAME -> RegisterStep.USERNAME
+            RegisterStep.USERNAME -> {
+                onBackToLogin() // ✅ go back to login when already at first step
+            RegisterStep.USERNAME
+            }
             RegisterStep.SCHOLAR_ID -> RegisterStep.USERNAME
             RegisterStep.PASSWORD -> RegisterStep.SCHOLAR_ID
         }
@@ -158,6 +162,7 @@ fun RegisterScreen(
             enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .height(60.dp)
                 .padding(bottom = 20.dp, start = 20.dp, end = 20.dp)
                 .align(Alignment.BottomCenter),
@@ -204,10 +209,5 @@ fun DecorativeCircles() {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF, widthDp = 360, heightDp = 640)
-@Composable
-fun RegisterScreenPreview() {
-    MaterialTheme {
-        RegisterScreen { _, _, _ -> }
-    }
-}
+
+

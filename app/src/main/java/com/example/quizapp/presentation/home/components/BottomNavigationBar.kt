@@ -28,6 +28,7 @@ fun BottomNavigationBar(
                 .fillMaxWidth()
                 .height(60.dp)
                 .padding(horizontal = 8.dp),
+
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
@@ -37,6 +38,7 @@ fun BottomNavigationBar(
                     contentDescription = "Home",
                     tint = if (selectedItem == BottomNavItem.HOME) Color.White else Color.Gray,
                     modifier = Modifier.size(32.dp)
+
                 )
             }
             IconButton(onClick = { onItemSelected(BottomNavItem.LIBRARY) }) {

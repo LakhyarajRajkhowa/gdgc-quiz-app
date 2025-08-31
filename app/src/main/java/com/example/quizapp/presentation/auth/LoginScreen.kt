@@ -187,7 +187,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Signup link
             Row(

@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.DailyQuizApi.DailyQuizApiClient
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModel
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModelFactory
 
 @Composable
 fun QuizRoute(

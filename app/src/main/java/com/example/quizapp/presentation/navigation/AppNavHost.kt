@@ -22,24 +22,37 @@ import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.repository.HomeRepository
 import com.example.quizapp.data.repository.QuizRepository
 import com.example.quizapp.R
-
+import com.example.quizapp.data.storage.TokenManager
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModel
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModelFactory
 
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
 
-    // ✅ Provide AuthViewModel here (shared across screens if needed)
+    val context = LocalContext.current
+
+    // 🔹 Create TokenManager
+    val tokenManager = remember { TokenManager(context) }
+
+    // 🔹 AuthViewModel with TokenManager
     val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(QuizRepository(ApiClient.apiService))
+        factory = AuthViewModelFactory(
+            QuizRepository(ApiClient.getService()),
+            tokenManager
+        )
     )
+
     val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(HomeRepository(ApiClient.apiService))
+        factory = HomeViewModelFactory(HomeRepository(ApiClient.getService()))
     )
 
     val dailyQuizViewModel: DailyQuizViewModel = viewModel(
-        factory = DailyQuizViewModelFactory(DailyQuizRepository(DailyQuizApiClient.dailyQuizApiService))
+        factory = DailyQuizViewModelFactory(
+            DailyQuizRepository(DailyQuizApiClient.dailyQuizApiService)
+        )
     )
-    val context = LocalContext.current
+
     val dataStoreManager = remember { DataStoreManager(context) }
 
 
@@ -110,11 +123,13 @@ fun AppNavHost(navController: NavHostController) {
 
         // 🔹 REGISTER
         composable(NavRoutes.REGISTER) {
-            RegisterScreen { username, scholarId, password ->
+           RegisterScreen (  onFinish = {username, scholarId, password ->
                 authViewModel.register(username, scholarId, password)
-                navController.navigate(NavRoutes.LOGIN)
-            }
+                navController.navigate(NavRoutes.LOGIN)},
+               onBackToLogin = { navController.popBackStack() }
+            )
         }
+
 
         composable(NavRoutes.HOME) {
 
@@ -193,12 +208,23 @@ fun AppNavHost(navController: NavHostController) {
 
 
         // 🔹 CREATE QUIZ
-//        composable(NavRoutes.CREATE_QUIZ) {
-//            CreateQuizScreen(onCreate = { name, count ->
-//                // TODO: QuizViewModel.createQuiz()
-//                navController.navigate(NavRoutes.HOME)
-//            })
-//        }
+        composable(NavRoutes.CREATE_QUIZ) {
+            CreateQuestionScreen(
+                onBack = { navController.popBackStack() },
+                onFinishQuiz = {
+                    // Navigate back to Home after finishing quiz
+                    navController.navigate(NavRoutes.HOME) {
+                        popUpTo(NavRoutes.HOME) { inclusive = true }
+                    }
+                },
+                onNext = {
+                    // TODO: Save next question logic (API or local list)
+                    // For now, just stay on the same screen
+                }
+            )
+        }
+
+
 
         // 🔹 JOIN QUIZ
 //        composable(NavRoutes.JOIN_QUIZ) {

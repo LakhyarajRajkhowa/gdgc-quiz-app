@@ -27,11 +27,15 @@ import com.example.quizapp.data.DataStoreManager
 import com.example.quizapp.presentation.auth.AuthState
 import com.example.quizapp.presentation.home.components.*
 import com.example.quizapp.presentation.navigation.BottomNavItem
+import com.example.quizapp.presentation.home.components.QuizOptionsBottomSheet
+import kotlinx.coroutines.launch
+
 
 private val Purple1 = Color(0xFF7D4CFF)
 private val Purple2 = Color(0xFF6A3DF0)
 private val SoftYellow = Color(0xFFF6C66B)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
@@ -46,6 +50,48 @@ fun HomeScreen(
 ) {
     val state by homeViewModel.uiState.collectAsState()
     var selectedItem by remember { mutableStateOf(BottomNavItem.HOME) } // <-- FIXED
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showJoinDialog by remember { mutableStateOf(false) }
+    var showCreateQuizCodeDialog by remember { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            QuizOptionsBottomSheet(
+                onCreateQuiz = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                        // Navigate to CreateQuestionScreen via the lambda from AppNavHost
+                        onFabClick() // This will trigger navController.navigate("createQuestion")
+                    }
+                },
+                onJoinQuiz = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                        showJoinDialog = true
+                    }
+                }
+            )
+        }
+    }
+
+
+    if (showJoinDialog) {
+        JoinQuizDialog(
+            onDismiss = { showJoinDialog = false },
+            onJoinQuiz = { code ->
+                showJoinDialog = false
+                onJoinQuiz()  // pass code to parent if needed
+            }
+        )
+    }
+
+
 
     LaunchedEffect(Unit) {
         val token = dataStoreManager.getToken()
@@ -58,34 +104,40 @@ fun HomeScreen(
     }
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onFabClick,
-                containerColor = Purple1,
-                contentColor = Color.White,
-                modifier = Modifier
-                    .size(64.dp)
-                    .offset(y = (74).dp),
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp)
-                )
+            Box(Modifier.navigationBarsPadding()) {
+                FloatingActionButton(
+                    onClick = { showBottomSheet = true },
+                    containerColor = Purple1,
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .offset(y = (114).dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
             }
         },
         floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
-            BottomNavigationBar(selectedItem = selectedItem,
-                onItemSelected = { item ->
-                    selectedItem = item
-                    when (item) {
-                        BottomNavItem.HOME -> onNavHome()
-                        BottomNavItem.LIBRARY -> onNavLibrary()
-                        BottomNavItem.LEADERBOARD -> onNavLeaderboard()
-                        BottomNavItem.ME -> onNavMe()
-                    }
-                })
+            Box(Modifier.navigationBarsPadding()) {
+                BottomNavigationBar(
+                    selectedItem = selectedItem,
+                    onItemSelected = { item ->
+                        selectedItem = item
+                        when (item) {
+                            BottomNavItem.HOME -> onNavHome()
+                            BottomNavItem.LIBRARY -> onNavLibrary()
+                            BottomNavItem.LEADERBOARD -> onNavLeaderboard()
+                            BottomNavItem.ME -> onNavMe()
+                        }
+                    })
+            }
         }
     ) { innerPadding ->
 
@@ -128,10 +180,10 @@ fun HomeScreen(
     }
 }
 
-@Preview
-@Composable
-fun previewHomescreen(){
-    MaterialTheme {
-        HomeScreenUi(onJoinQuiz = {}, onFabClick = {}, performance = "65%")
-    }
-}
+//@Preview
+//@Composable
+//fun previewHomescreen(){
+//    MaterialTheme {
+//        HomeScreenUi(onJoinQuiz = {}, onFabClick = {}, performance = "65%")
+//    }
+//}

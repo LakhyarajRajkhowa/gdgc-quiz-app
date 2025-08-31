@@ -1,10 +1,10 @@
-package com.example.quizapp.presentation.quiz
+package com.example.quizapp.presentation.quiz.DailyQuiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.quizapp.data.repository.DailyQuizRepository
 
-class DailyQuizViewModelFactory(
+class  DailyQuizViewModelFactory(
     private val repository: DailyQuizRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

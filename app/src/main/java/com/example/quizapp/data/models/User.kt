@@ -2,18 +2,18 @@ package com.example.quizapp.data.models
 
 data class User(
     val username: String,
-    val scholarId: String,
+    val scholar_id: String,
     val password: String
 )
 
 data class LoginRequest(
-    val scholarId: String,
+    val scholar_id: String,
     val password: String
 )
 
 data class LoginResponse(
     val userId: String,
-    val scholarId: String,
+    val scholar_id: String,
     val username: String,
     val token: String
 )

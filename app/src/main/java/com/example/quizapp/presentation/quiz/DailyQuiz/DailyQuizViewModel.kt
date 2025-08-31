@@ -1,11 +1,11 @@
-package com.example.quizapp.presentation.quiz
+package com.example.quizapp.presentation.quiz.DailyQuiz
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.mapper.toQuestion
 import com.example.quizapp.data.models.Question
+import com.example.quizapp.data.repository.DailyQuizRepository
 import kotlinx.coroutines.launch
 
 class DailyQuizViewModel(private val repository: DailyQuizRepository) : ViewModel() {

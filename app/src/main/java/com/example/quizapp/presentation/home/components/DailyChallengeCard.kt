@@ -32,7 +32,7 @@ fun DailyChallengeCard(challengeText: String, onGetStartedClick: () -> Unit = {}
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.",
+                    "Challenge your mind daily with fun quizzes and track your growth.",
                     fontSize = 15.sp,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
