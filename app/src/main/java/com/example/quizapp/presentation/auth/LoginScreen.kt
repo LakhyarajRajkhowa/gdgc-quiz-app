@@ -122,21 +122,19 @@ fun LoginScreen(
                     Spacer(Modifier.height(8.dp))
 
                     // Remember me + Reset password
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Checkbox(checked = rememberMe, onCheckedChange = { rememberMe = it })
-                            Text("Remember me")
-                        }
-                        TextButton(onClick = onResetPassword) {
-                            Text("Reset Password")
-                        }
-                    }
+//                    Row(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        Row(
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            modifier = Modifier.weight(1f)
+//                        ) {
+//                            Checkbox(checked = rememberMe, onCheckedChange = { rememberMe = it })
+//                            Text("Remember me")
+//                        }
+//
+//                    }
 
                     Spacer(Modifier.height(30.dp))
 

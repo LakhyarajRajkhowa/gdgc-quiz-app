@@ -1,23 +1,29 @@
 package com.example.quizapp.data.api
 
 import com.example.quizapp.data.models.*
-import okhttp3.Response
-import retrofit2.http.*
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
 
 interface ApiService {
     // 🔹 Authentication
     @POST("api/auth/register")
-    suspend fun register(@Body user: User): ApiResponse
+    suspend fun register(@Body request: RegisterRequest): ApiResponse
+
 
     @POST("api/auth/login")
     suspend fun login(@Body credentials: LoginRequest): LoginResponse
 
 
+
     // 🔹 Quiz APIs
 
-        @POST("api/quiz/create")
-        suspend fun createQuiz(@Body quiz: CreateQuizRequest): Response
-
+    @POST("api/quiz/create")
+    suspend fun createQuiz(
+        @Body quiz: CreateQuizRequest
+    ): retrofit2.Response<CreateQuizResponse>
 
    // @POST("api/quiz/join")
     //suspend fun joinQuiz(@Body request: JoinQuizRequest): ApiResponse // Join quiz by code

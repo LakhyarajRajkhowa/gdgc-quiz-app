@@ -1,7 +1,10 @@
 package com.example.quizapp.presentation.quiz
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,14 +23,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.platform.LocalContext
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateQuestionScreen(
+    quizTitle: String,
+    totalQuestions: Int,
     onBack: () -> Unit,
-    onFinishQuiz: () -> Unit,
-    onNext: () -> Unit
+    onFinishQuiz: () -> Unit
 ) {
     var questionText by remember { mutableStateOf("") }
     var optionA by remember { mutableStateOf("") }
@@ -36,159 +44,143 @@ fun CreateQuestionScreen(
     var optionD by remember { mutableStateOf("") }
     var selectedAnswer by remember { mutableStateOf("A") }
 
-    // 🔹 UI States
+    val questions = remember { mutableStateListOf<QuestionRequest>() }
+    var currentIndex by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
-    // 🔹 Hold quiz title + all questions
-    var quizTitle by remember { mutableStateOf("General Knowledge Big Quiz") }
-    val questions = remember { mutableStateListOf<QuestionRequest>() }
+    val progress = (currentIndex + 1) / totalQuestions.toFloat()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Quiz", color = Color.White) },
+                title = { Text("Create Questions", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF7D4CFF)
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF7D4CFF))
             )
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
-                .background(Color.White)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
+            // Progress bar + question counter
+            LinearProgressIndicator(
+                progress = progress,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 45.dp, bottom = 65.dp, start = 16.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // 🔹 Quiz title
-                Text("Quiz Title", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                OutlinedTextField(
-                    value = quizTitle,
-                    onValueChange = { quizTitle = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    .fillMaxWidth()
+                    .height(6.dp),
+                color = Color(0xFF7D4CFF),
+                trackColor = Color.LightGray.copy(alpha = 0.3f)
+            )
+            Text("Question ${currentIndex + 1} of $totalQuestions")
 
-                // 🔹 Question input
-                Text("Enter Question", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                OutlinedTextField(
-                    value = questionText,
-                    onValueChange = { questionText = it },
-                    placeholder = { Text("Enter your question") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // Question input
+            OutlinedTextField(
+                value = questionText,
+                onValueChange = { questionText = it },
+                placeholder = { Text("Enter your question") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OptionTextField("A.", optionA) { optionA = it }
+            OptionTextField("B.", optionB) { optionB = it }
+            OptionTextField("C.", optionC) { optionC = it }
+            OptionTextField("D.", optionD) { optionD = it }
 
-                OptionTextField("A.", optionA) { optionA = it }
-                OptionTextField("B.", optionB) { optionB = it }
-                OptionTextField("C.", optionC) { optionC = it }
-                OptionTextField("D.", optionD) { optionD = it }
-
-                // 🔹 Correct answer selection
-                Text("Choose the correct option", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    listOf("A","B","C","D").forEach { opt ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = selectedAnswer == opt,
-                                onClick = { selectedAnswer = opt }
-                            )
-                            Text(opt)
-                        }
+            Text("Choose the correct option")
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                listOf("A","B","C","D").forEach { opt ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = selectedAnswer == opt,
+                            onClick = { selectedAnswer = opt }
+                        )
+                        Text(opt)
                     }
                 }
+            }
 
-                Spacer(Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
 
-                val correctAnswer = when (selectedAnswer) {
-                    "A" -> optionA
-                    "B" -> optionB
-                    "C" -> optionC
-                    "D" -> optionD
-                    else -> optionA
-                }
+            Button(
+                onClick = {
+                    if (questionText.isNotBlank() && optionA.isNotBlank() &&
+                        optionB.isNotBlank() && optionC.isNotBlank() && optionD.isNotBlank()
+                    ) {
+                        val correctAnswer = when (selectedAnswer) {
+                            "A" -> optionA
+                            "B" -> optionB
+                            "C" -> optionC
+                            "D" -> optionD
+                            else -> optionA
+                        }
+                        questions.add(
+                            QuestionRequest(questionText, listOf(optionA, optionB, optionC, optionD), correctAnswer, 60)
+                        )
 
-                val currentQuestion = QuestionRequest(
-                    text = questionText,
-                    options = listOf(optionA, optionB, optionC, optionD),
-                    correct = correctAnswer,
-                    time = 60
-                )
-
-                // 🔹 Action buttons
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(
-                        onClick = {
-                            if (questionText.isNotBlank() && optionA.isNotBlank() &&
-                                optionB.isNotBlank() && optionC.isNotBlank() && optionD.isNotBlank()
-                            ) {
-                                questions.add(currentQuestion)
-                            }
+                        if (currentIndex + 1 == totalQuestions) {
+                            // send quiz to backend
                             isLoading = true
-                            sendQuizToBackend(quizTitle, questions,
-                                onResult = { success, error ->
-                                    isLoading = false
-                                    message = success ?: error
-                                    if (success != null) {
-                                        // clear after finishing
-                                        questions.clear()
-                                        questionText = ""
-                                        optionA = ""; optionB = ""; optionC = ""; optionD = ""
-                                        selectedAnswer = "A"
-                                        onFinishQuiz()
-                                    }
-                                }
-                            )
-                        },
-                        shape = RoundedCornerShape(10),
-                        modifier = Modifier.width(150.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7D4CFF))
-                    ) { Text("Finish Quiz", color = Color.White) }
-
-                    Button(
-                        onClick = {
-                            if (questionText.isNotBlank() && optionA.isNotBlank() &&
-                                optionB.isNotBlank() && optionC.isNotBlank() && optionD.isNotBlank()
-                            ) {
-                                questions.add(currentQuestion)
-                                // reset fields for next question
-                                questionText = ""
-                                optionA = ""; optionB = ""; optionC = ""; optionD = ""
-                                selectedAnswer = "A"
-                                message = "✅ Question added, enter next!"
-                            } else {
-                                message = "❌ Please fill all fields before adding."
+                            sendQuizToBackend(quizTitle, questions) { success, error ->
+                                isLoading = false
+                                message = success ?: error
+                               // if (success != null) onFinishQuiz()
                             }
-                        },
-                        shape = RoundedCornerShape(10),
-                        modifier = Modifier.width(150.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7D4CFF))
-                    ) { Text("Next", color = Color.White) }
-                }
-
-                // 🔹 Status message
-                message?.let {
-                    Text(it, color = if (it.startsWith("✅")) Color.Green else Color.Red)
-                }
+                        } else {
+                            // go to o question
+                            currentIndex++
+                            questionText = ""; optionA = ""; optionB = ""; optionC = ""; optionD = ""
+                            selectedAnswer = "A"
+                        }
+                    } else {
+                        message = "❌ Fill all fields first"
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7D4CFF))
+            ) {
+                Text(if (currentIndex + 1 == totalQuestions) "Finish Quiz" else "Next", color = Color.White)
             }
 
-            if (isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF7D4CFF))
-                }
+
+
+            val context = LocalContext.current
+
+            if (message?.startsWith("✅") == true) {
+                AlertDialog(
+                    onDismissRequest = { /* prevent dismiss outside */ },
+                    confirmButton = {
+                        Row {
+                            Button(onClick = {
+                                // Copy code to clipboard
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Quiz Code", message)
+                                clipboard.setPrimaryClip(clip)
+                            }) {
+                                Text("Copy")
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Button(onClick = {
+                                message = null
+                                onFinishQuiz() // ✅ navigate only when OK is pressed
+                            }) {
+                                Text("OK")
+                            }
+                        }
+                    },
+                    title = { Text("Quiz Created!") },
+                    text = { Text(message ?: "") }
+                )
             }
+
+
         }
     }
 }
@@ -199,9 +191,7 @@ fun OptionTextField(label: String, value: String, onValueChange: (String) -> Uni
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        leadingIcon = {
-            Text(label, fontWeight = FontWeight.Bold)
-        },
+        leadingIcon = { Text(label, fontWeight = FontWeight.Bold) },
         placeholder = { Text("Enter your option", fontSize = 16.sp) },
         modifier = Modifier.fillMaxWidth()
     )
@@ -219,9 +209,16 @@ private fun sendQuizToBackend(
             val response = ApiClient.getService().createQuiz(quiz)
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
-                    onResult("✅ Quiz created successfully!", null)
+                    val body = response.body()
+                    val codeMessage = if (body?.code != null) {
+                        " Quiz created! Code: ${body.code}"
+                    } else {
+                        " Quiz created! ID: ${body?.quizId}"
+                    }
+                    // ❌ don’t call onFinishQuiz() here
+                    onResult(codeMessage, null)
                 } else {
-                    onResult(null, "❌ Failed: ${response} ${response}")
+                    onResult(null, "❌ Failed: ${response.code()} ${response.message()}")
                 }
             }
         } catch (e: Exception) {

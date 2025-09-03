@@ -39,10 +39,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.HtmlCompat
 import com.example.quizapp.R
 import com.example.quizapp.data.models.Question
 import kotlinx.coroutines.delay
-import androidx.core.text.HtmlCompat
+import androidx.core.text.htmlEncode
 
 
 

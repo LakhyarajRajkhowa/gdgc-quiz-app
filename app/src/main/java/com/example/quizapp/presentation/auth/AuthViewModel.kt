@@ -26,12 +26,11 @@ class AuthViewModel(
 
                 // ✅ Instead of response.token (null), use stored token
                 val token = tokenManager.getToken()
-                if (token != null) {
+                if (token != null && response.user != null) {
                     _authState.value = AuthState.Success(token)
-                    Log.d("LoginTest", "Login success: token=$token, user=$response")
+                    Log.d("LoginTest", "Login success: token=$token, user=${response.user}")
                 } else {
-                    _authState.value = AuthState.Error("Token not found after login")
-                    Log.d("LoginTest", "Login failed: token was null")
+                    _authState.value = AuthState.Error("Login failed: missing token or user")
                 }
 
             } catch (e: Exception) {
@@ -44,16 +43,15 @@ class AuthViewModel(
     fun register(username: String, scholarId: String, password: String) {
         viewModelScope.launch {
             try {
-                val response = repository.register(User(username, scholarId, password))
-                // Don’t force unwrap !! because message may be null
+                val response = repository.register(RegisterRequest(username, scholarId, password))
                 val msg = response.message ?: "Registered successfully"
                 _authState.value = AuthState.Message(msg)
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Unknown error")
             }
         }
-
     }
+
 }
 
 sealed class AuthState {

@@ -15,7 +15,3 @@ data class DailyChallengeResponse(
     val challenge: String
 )
 
-data class CreateQuizResponse(
-    val message: String,
-    val quizId: String
-)

@@ -8,6 +8,7 @@ object NavRoutes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val HOME = "home"
+    const val CREATE_QUIZ_SETUP = "create_quiz_setup"
     const val CREATE_QUIZ = "create_quiz"
     const val JOIN_QUIZ = "join_quiz"
     const val LIVE_QUIZ = "live_quiz"
@@ -15,6 +16,7 @@ object NavRoutes {
     const val PROFILE = "profile"
     const val LIBRARY = "library"
     const val DAILY_QUIZ = "daily_quiz"
+
 
 
 }

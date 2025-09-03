@@ -1,0 +1,73 @@
+package com.example.quizapp.presentation.quiz
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.input.TextFieldValue
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateQuizSetupScreen(
+    onNext: (String, Int) -> Unit,
+    onBack: () -> Unit
+) {
+    var quizName by remember { mutableStateOf(TextFieldValue("")) }
+    var numQuestions by remember { mutableStateOf(TextFieldValue("")) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Create a Quiz",
+            fontSize = 22.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Quiz Name
+        OutlinedTextField(
+            value = quizName,
+            onValueChange = { quizName = it },
+            label = { Text("Quiz Name") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Number of Questions
+        OutlinedTextField(
+            value = numQuestions,
+            onValueChange = { numQuestions = it },
+            label = { Text("Number of Questions") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                val num = numQuestions.text.toIntOrNull() ?: 0
+                if (quizName.text.isNotBlank() && num > 0) {
+                    onNext(quizName.text, num)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Next")
+        }
+    }
+}
