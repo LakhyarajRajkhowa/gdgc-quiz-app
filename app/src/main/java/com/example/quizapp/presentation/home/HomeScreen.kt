@@ -161,6 +161,9 @@ fun HomeScreen(
                 title = state.liveQuizTitle,
                 onJoinQuiz = onJoinQuiz
             )
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color.LightGray, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(16.dp))
 
                 ProgressSection(
                     ranking = state.ranking,
@@ -169,6 +172,8 @@ fun HomeScreen(
                     coins = state.coins,
                     progressPercent = state.progressPercent
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 DailyChallengeCard(
                     challengeText = state.dailyChallenge ?: "No challenge today",

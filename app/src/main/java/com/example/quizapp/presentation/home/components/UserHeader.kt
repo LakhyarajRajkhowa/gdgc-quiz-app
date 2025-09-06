@@ -54,7 +54,7 @@ fun UserHeader(username: String) {
 
         Column(modifier = Modifier.padding(start = 20.dp, top = 56.dp)) {
             Text(
-                text = "Hello ${username}",
+                text = "Hello ${username}!",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
@@ -64,21 +64,6 @@ fun UserHeader(username: String) {
                 text = "We are happy to have you back",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 16.sp
-            )
-        }
-
-        IconButton(
-            onClick = { /* trophy */ },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = 16.dp, top = 16.dp)
-                .size(42.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.outline_trophy_24),
-                contentDescription = "profile",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
             )
         }
     }
