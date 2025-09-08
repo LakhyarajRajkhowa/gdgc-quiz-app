@@ -35,15 +35,18 @@ import android.content.Context
 fun CreateQuestionScreen(
     quizTitle: String,
     totalQuestions: Int,
+    timeLimit: Int, // added
     onBack: () -> Unit,
     onFinishQuiz: () -> Unit
-) {
+)
+ {
     var questionText by remember { mutableStateOf("") }
     var optionA by remember { mutableStateOf("") }
     var optionB by remember { mutableStateOf("") }
     var optionC by remember { mutableStateOf("") }
     var optionD by remember { mutableStateOf("") }
     var selectedAnswer by remember { mutableStateOf("A") }
+
 
     val questions = remember { mutableStateListOf<QuestionRequest>() }
     var currentIndex by remember { mutableStateOf(0) }
@@ -135,9 +138,13 @@ fun CreateQuestionScreen(
                             "D" -> optionD
                             else -> optionA
                         }
+
+
                         questions.add(
-                            QuestionRequest(questionText, listOf(optionA, optionB, optionC, optionD), correctAnswer, 60)
+                            QuestionRequest(questionText, listOf(optionA, optionB, optionC, optionD), correctAnswer, timeLimit)
                         )
+
+
 
                         if (currentIndex + 1 == totalQuestions) {
                             // send quiz to backend
@@ -171,15 +178,14 @@ fun CreateQuestionScreen(
 
             val context = LocalContext.current
 
-            if (quizCode != null) {
+            if (quizCode != null) {  // rename this if you want for clarity, like quizId
                 AlertDialog(
                     onDismissRequest = { /* don’t dismiss outside */ },
                     confirmButton = {
                         Row {
                             Button(onClick = {
-                                // Copy code to clipboard
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Quiz Code", quizCode)
+                                val clip = ClipData.newPlainText("Quiz ID", quizCode) // ✅ Updated label
                                 clipboard.setPrimaryClip(clip)
                             }) {
                                 Text("Copy")
@@ -187,16 +193,17 @@ fun CreateQuestionScreen(
                             Spacer(Modifier.width(8.dp))
                             Button(onClick = {
                                 quizCode = null
-                                onFinishQuiz() // ✅ navigate only when OK is pressed
+                                onFinishQuiz()
                             }) {
                                 Text("OK")
                             }
                         }
                     },
                     title = { Text("Quiz Created!") },
-                    text = { Text("Joining Code: $quizCode") }
+                    text = { Text("Quiz ID: $quizCode") }  // ✅ Updated text
                 )
             }
+
 
             if (errorMessage != null) {
                 AlertDialog(
@@ -242,13 +249,9 @@ private fun sendQuizToBackend(
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     val body = response.body()
-                    val codeMessage = if (body?.code != null) {
-                        "${body.code}"
-                    } else {
-                        "${body?.quizId}"
-                    }
-                    // ❌ don’t call onFinishQuiz() here
-                    onResult(codeMessage, null)
+                    val quizIdMessage = body?.quizId?.toString() ?: "Invalid ID"
+                    onResult(quizIdMessage, null)
+
                 } else {
                     onResult(null, "Failed: ${response.code()} ${response.message()}")
                 }
@@ -260,3 +263,4 @@ private fun sendQuizToBackend(
         }
     }
 }
+

@@ -30,43 +30,43 @@ class LiveQuizViewModel(
     val error: StateFlow<String?> = _error
 
     fun connectToServer(quizId: String, userId: Int?) {
-        quizManager.connect(quizId, userId)
+        quizManager.connect(
+            quizId,
+            userId,
+            onQuizStarted = { id ->
+                _quizStarted.value = id
+                Log.d("LiveQuizVM", "Quiz Started: $id")
+            },
+            onNewQuestion = { question ->
+                // Clone the JSONObject to create a new instance
+                _newQuestion.value = JSONObject(question.toString())
+                _error.value = null  // Reset error for new question
+
+                Log.d("LiveQuizVM", "New Question: $question")
+            },
+            onQuestionEnded = { result ->
+                _questionEnded.value = result
+                Log.d("LiveQuizVM", "Question Ended: $result")
+            },
+            onQuizEnded = { result ->
+                _quizEnded.value = result
+                Log.d("LiveQuizVM", "Quiz Ended: $result")
+            },
+            onUserJoined = { data ->
+                Log.d("LiveQuizVM", "User Joined: $data")
+            },
+            onAnswerReceived = { data ->
+                Log.d("LiveQuizVM", "Answer Received: $data")
+            },
+            onError = { data ->
+                _error.value = data.optString("message")
+                Log.e("LiveQuizVM", "Error: ${data.optString("message")}")
+            }
+        )
     }
 
     fun joinQuiz(quizId: String, userId: Int?) {
         quizManager.joinQuiz(quizId, userId)
-
-        quizManager.listenQuizEvents(
-            onQuizStarted = { id ->
-                Log.d("LiveQuizVM", "Quiz started: $id")
-                _quizStarted.value = id
-            },
-            onNewQuestion = { q ->
-                Log.d("LiveQuizVM", "New question: $q")
-                _newQuestion.value = q
-            },
-            onQuestionEnded = { r ->
-                Log.d("LiveQuizVM", "Question ended: ${r.toString()}")
-                viewModelScope.launch {
-                    kotlinx.coroutines.delay(500)  // Delay 500ms to simulate processing time
-                    _questionEnded.value = r
-                }
-            },
-            onQuizEnded = { lb ->
-                Log.d("LiveQuizVM", "Quiz ended: $lb")
-                _quizEnded.value = lb
-            },
-            onUserJoined = { data ->
-                Log.d("LiveQuizVM", "User joined: $data")
-            },
-            onAnswerReceived = { data ->
-                Log.d("LiveQuizVM", "Answer received: $data")
-            },
-            onError = { err ->
-                Log.e("LiveQuizVM", "Error: ${err.getString("message")}")
-            }
-        )
-
     }
 
     fun submitAnswer(quizId: String, questionId: String, userId: Int?, answer: String) {
@@ -83,4 +83,15 @@ class LiveQuizViewModel(
         super.onCleared()
         quizManager.disconnect()
     }
+
+    fun disconnect(){
+        quizManager.disconnect()
+    }
+    fun startLiveQuizConnection(quizId: String, userId: Int?) {
+        connectToServer(quizId, userId)
+        joinQuiz(quizId, userId)
+    }
+
+
 }
+

@@ -1,7 +1,10 @@
 package com.example.quizapp.data.models
 
+import com.google.gson.annotations.SerializedName
+
 data class CreateQuizResponse(
-    val quizId: Int,
-    val message: String,
-    val code: String? = null // ✅ optional for now, backend will add later
+    @SerializedName("id") val quizId: Int?,
+    val code: String?,
+    val message: String?
 )
+

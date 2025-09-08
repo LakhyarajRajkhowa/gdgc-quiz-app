@@ -11,8 +11,10 @@ object NavRoutes {
     const val CREATE_QUIZ_SETUP = "create_quiz_setup"
     const val CREATE_QUIZ = "create_quiz"
     const val JOIN_QUIZ = "join_quiz"
-    const val LIVE_QUIZ = "live_quiz"
-    const val LEADERBOARD = "leaderboard"
+    const val LIVE_QUIZ = "live_quiz/{quizId}"
+    const val START_QUIZ = "start_quiz"
+
+    const val LEADERBOARD = "leaderboard/"
     const val PROFILE = "profile"
     const val LIBRARY = "library"
     const val DAILY_QUIZ = "daily_quiz"

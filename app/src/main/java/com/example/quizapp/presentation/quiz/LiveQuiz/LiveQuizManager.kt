@@ -11,63 +11,17 @@ class LiveQuizManager(
 ) {
     private var socket: Socket? = null
 
-    fun joinQuiz(quizId: String, userId: Int?) {
-        val data = JSONObject().apply {
-            put("quizId", quizId)
-            put("userId", userId)
-        }
-        socket?.emit("joinQuiz", data)
-    }
-
-    fun listenQuizEvents(
+    fun connect(
+        quizCode: String,
+        userId: Int?,
         onQuizStarted: (String) -> Unit,
         onNewQuestion: (JSONObject) -> Unit,
         onQuestionEnded: (JSONObject) -> Unit,
         onQuizEnded: (JSONObject) -> Unit,
-        onUserJoined: (JSONObject) -> Unit,          // Add this
-        onAnswerReceived: (JSONObject) -> Unit,      // Add this
-        onError: (JSONObject) -> Unit                // Add this
+        onUserJoined: (JSONObject) -> Unit,
+        onAnswerReceived: (JSONObject) -> Unit,
+        onError: (JSONObject) -> Unit
     ) {
-
-        socket?.on("quizStarted") { args ->
-            val obj = args[0] as JSONObject
-            onQuizStarted(obj.getString("quizId"))
-        }
-
-        socket?.on("newQuestion") { args ->
-            val obj = args[0] as JSONObject
-            onNewQuestion(obj)
-        }
-
-        socket?.on("questionEnded") { args ->
-            val obj = args[0] as JSONObject
-            onQuestionEnded(obj)
-        }
-
-        socket?.on("quizEnded") { args ->
-            val obj = args[0] as JSONObject
-            onQuizEnded(obj)
-        }
-
-        // ✅ Handle new events below
-        socket?.on("userJoined") { args ->
-            val obj = args[0] as JSONObject
-            onUserJoined(obj)
-        }
-
-        socket?.on("answerReceived") { args ->
-            val obj = args[0] as JSONObject
-            onAnswerReceived(obj)
-        }
-
-        socket?.on("error") { args ->
-            val obj = args[0] as JSONObject
-            onError(obj)
-        }
-    }
-
-
-    fun connect(quizCode: String, userId: Int?) {
         if (socket != null && socket!!.connected()) {
             Log.d("LiveQuizManager", "Already connected, skipping.")
             return
@@ -89,30 +43,61 @@ class LiveQuizManager(
                 socket?.emit("joinQuiz", data)
             }
 
-
             socket?.on("quizStarted") { args ->
-                Log.d("LiveQuizManager", "🚀 Quiz Started: ${args[0]}")
+                val obj = args[0] as JSONObject
+                onQuizStarted(obj.getString("quizId"))
+                Log.d("LiveQuizManager", "🚀 Quiz Started: ${obj.getString("quizId")}")
             }
 
             socket?.on("newQuestion") { args ->
                 val obj = args[0] as JSONObject
-                Log.d("LiveQuizManager", "📌 New Question: ${obj.toString()}")
+                onNewQuestion(obj)
+                Log.d("LiveQuizManager", "📌 New Question: $obj")
             }
 
             socket?.on("questionEnded") { args ->
                 val obj = args[0] as JSONObject
-                Log.d("LiveQuizManager", "⏱ Question Ended: ${obj.toString()}")
+                onQuestionEnded(obj)
+                Log.d("LiveQuizManager", "⏱ Question Ended: $obj")
             }
 
             socket?.on("quizEnded") { args ->
                 val obj = args[0] as JSONObject
-                Log.d("LiveQuizManager", "🏆 Quiz Ended Leaderboard: ${obj.toString()}")
+                onQuizEnded(obj)
+                Log.d("LiveQuizManager", "🏆 Quiz Ended: $obj")
+            }
+
+            socket?.on("userJoined") { args ->
+                val obj = args[0] as JSONObject
+                onUserJoined(obj)
+                Log.d("LiveQuizManager", "👥 User Joined: $obj")
+            }
+
+            socket?.on("answerReceived") { args ->
+                val obj = args[0] as JSONObject
+                onAnswerReceived(obj)
+                Log.d("LiveQuizManager", "📩 Answer Received: $obj")
+            }
+
+            socket?.on("error") { args ->
+                val obj = args[0] as JSONObject
+                onError(obj)
+                Log.d("LiveQuizManager", "⚠ Error: $obj")
             }
 
             socket?.connect()
         } catch (e: Exception) {
             Log.e("LiveQuizManager", "❌ Socket connection error", e)
         }
+    }
+
+    fun joinQuiz(quizId: String, userId: Int?) {
+        val data = JSONObject().apply {
+            put("quizId", quizId)
+            put("userId", userId)
+        }
+        socket?.emit("joinQuiz", data)
+        Log.d("LiveQuizManager", "func: Join Quiz")
     }
 
     fun submitAnswer(quizId: String, questionId: String, userId: Int?, answer: String) {
@@ -130,5 +115,3 @@ class LiveQuizManager(
         socket?.off()
     }
 }
-
-

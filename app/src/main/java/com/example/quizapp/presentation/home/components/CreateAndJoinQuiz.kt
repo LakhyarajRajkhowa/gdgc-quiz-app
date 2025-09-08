@@ -91,7 +91,7 @@ fun QuizOptionsBottomSheet(
                 contentColor = Color.White
             )
         ) {
-            Text("Join Quiz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text("Start Quiz (Admin)", fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
     }
 }
@@ -212,7 +212,7 @@ private fun JoinQuizDialogContent(
                 enabled = joinCode.isNotBlank()
             ) {
                 Text(
-                    text = "Join",
+                    text = "Start",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -14,11 +14,14 @@ import androidx.compose.ui.text.input.TextFieldValue
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateQuizSetupScreen(
-    onNext: (String, Int) -> Unit,
+    onNext: (String, Int, Int) -> Unit, // updated
     onBack: () -> Unit
-) {
+)
+{
     var quizName by remember { mutableStateOf(TextFieldValue("")) }
     var numQuestions by remember { mutableStateOf(TextFieldValue("")) }
+    var timeLimit by remember { mutableStateOf(TextFieldValue("30")) }
+
 
     Column(
         modifier = Modifier
@@ -56,13 +59,26 @@ fun CreateQuizSetupScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // Time per Question
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = timeLimit,
+            onValueChange = { timeLimit = it },
+            label = { Text("Time Limit (seconds)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
                 val num = numQuestions.text.toIntOrNull() ?: 0
+                val time = timeLimit.text.toIntOrNull() ?: 30 // fallback to 60 if invalid
                 if (quizName.text.isNotBlank() && num > 0) {
-                    onNext(quizName.text, num)
+                    onNext(quizName.text, num, time)
                 }
             },
             modifier = Modifier.fillMaxWidth()

@@ -31,8 +31,11 @@ import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizManager
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModel
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModelFactory
 import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import com.example.quizapp.data.storage.extractUserIdFromToken
-import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizSimpleScreen
+import com.example.quizapp.presentation.common.QuizLoadingScreen
+import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -166,7 +169,7 @@ fun AppNavHost(navController: NavHostController) {
                 homeViewModel = homeViewModel,
                 dataStoreManager = dataStoreManager,
                 onJoinLiveQuiz = {navController.navigate(NavRoutes.JOIN_QUIZ)},
-                onJoinQuiz = { },
+                onJoinQuiz = {navController.navigate(NavRoutes.START_QUIZ) },
                 onFabClick = { navController.navigate(NavRoutes.CREATE_QUIZ_SETUP) },
                 onNavHome = {
                     navController.navigate(NavRoutes.HOME) {
@@ -182,40 +185,69 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable(NavRoutes.JOIN_QUIZ) {
-            val token = tokenManager.getToken() ?: ""
-            val context = LocalContext.current
-            val quizManager = remember { LiveQuizManager("https://quiz-app-backend-7m74.onrender.com", token) }
-
             JoinQuizDialog(
                 onDismiss = { navController.popBackStack() },
                 onJoinQuiz = { code ->
-
-                    liveQuizViewModel.startQuiz(code)
-                    // use userId from datastore/auth
-                    Log.d("Token Check", "Token: ${token}")
-                    Log.d("func call ckeck", "Token: ${token}")
-
-                    val userId = extractUserIdFromToken(token)// replace with actual logged-in userId
-                    Log.d("Token Check", "userID: ${userId}")
-
-                    quizManager.connect(code, userId)
-
-                    // move to Live Quiz screen
-                    navController.navigate(NavRoutes.LIVE_QUIZ)
+                    navController.navigate("live_quiz/$code")
                 }
             )
         }
 
-        composable(NavRoutes.LIVE_QUIZ) {
-            val token = tokenManager.getToken() ?: ""
-            val userId = extractUserIdFromToken(token)
 
-            LiveQuizSimpleScreen(
-                viewModel = liveQuizViewModel,
-                quizId = "95",   // Or pass dynamically via arguments
-                userId = userId
+        composable(NavRoutes.START_QUIZ) {
+
+            JoinQuizDialog(
+                onDismiss = { navController.popBackStack() },
+                onJoinQuiz = { code ->
+                    liveQuizViewModel.startQuiz(code)
+                    navController.popBackStack()
+                }
             )
         }
+
+        composable(
+            "live_quiz/{quizId}",
+            arguments = listOf(navArgument("quizId") { type = NavType.StringType })
+        ) { backStackEntry ->
+
+            val token = tokenManager.getToken() ?: ""
+            val userId = extractUserIdFromToken(token)
+            val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+
+            var showQuizScreen by remember { mutableStateOf(false) }
+
+            // Initialize connection once
+            LaunchedEffect(Unit) {
+                liveQuizViewModel.startLiveQuizConnection(quizId, userId)
+            }
+
+            if (showQuizScreen) {
+                LiveQuizScreen(
+                    viewModel = liveQuizViewModel,
+                    quizId = quizId,
+                    userId = userId,
+                    onNavigateToLeaderboard = { id ->
+                        navController.navigate("leaderboard/$id") {
+                            popUpTo("live_quiz/$id") { inclusive = true }
+                        }
+                    }
+                )
+            } else {
+                QuizLoadingScreen() // your existing loading screen
+
+                // Wait for quiz to start
+                val quizStarted by liveQuizViewModel.quizStarted.collectAsState()
+                LaunchedEffect(quizStarted) {
+                    if (quizStarted != null) {
+                        showQuizScreen = true
+                    }
+                }
+            }
+        }
+
+
+
+
         // 🔹 DAILY QUIZ
         composable(NavRoutes.DAILY_QUIZ) {
             QuizRoute(
@@ -239,25 +271,29 @@ fun AppNavHost(navController: NavHostController) {
         composable(NavRoutes.CREATE_QUIZ_SETUP) {
             CreateQuizSetupScreen(
                 onBack = { navController.popBackStack() },
-                onNext = { title, numQuestions ->
-                    navController.navigate("${NavRoutes.CREATE_QUIZ}/$title/$numQuestions")
+                onNext = { title, numQuestions, timeLimit ->
+                    navController.navigate("${NavRoutes.CREATE_QUIZ}/$title/$numQuestions/$timeLimit")
                 }
             )
+
         }
 
         composable(
-            route = "${NavRoutes.CREATE_QUIZ}/{title}/{numQuestions}",
+            route = "${NavRoutes.CREATE_QUIZ}/{title}/{numQuestions}/{timeLimit}",
             arguments = listOf(
                 navArgument("title") { type = NavType.StringType },
-                navArgument("numQuestions") { type = NavType.IntType }
+                navArgument("numQuestions") { type = NavType.IntType },
+                navArgument("timeLimit") { type = NavType.IntType }
             )
         ) { backStackEntry ->
             val title = backStackEntry.arguments?.getString("title") ?: ""
             val numQuestions = backStackEntry.arguments?.getInt("numQuestions") ?: 1
+            val timeLimit = backStackEntry.arguments?.getInt("timeLimit") ?: 60
 
             CreateQuestionScreen(
                 quizTitle = title,
                 totalQuestions = numQuestions,
+                timeLimit = timeLimit, // pass to question screen
                 onBack = { navController.popBackStack() },
                 onFinishQuiz = {
                     navController.navigate(NavRoutes.HOME) {
@@ -267,11 +303,8 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
 
+
     }
 }
 
-private fun LiveQuizManager.connect(
-    string: String,
-    i: Int?
-) {
-}
+
