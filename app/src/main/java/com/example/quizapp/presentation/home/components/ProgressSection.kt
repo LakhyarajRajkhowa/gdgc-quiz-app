@@ -43,26 +43,13 @@ fun ProgressSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("My Ranking: 17", fontWeight = FontWeight.Bold)
+                Text("My Ranking: 0", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("Total Scored earned: 149")
-                Text("Quizzes attempted: 7")
+                Text("Total Scored earned: 0")
+                Text("Quizzes attempted: 0")
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // coin
-                    Box(
-                        modifier = Modifier.size(35.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.coin),
-                            contentDescription = "Reminder",
-                            modifier = Modifier.size(140.dp),
-                            tint = Color.Unspecified
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("125", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+
                 }
             }
 
@@ -72,7 +59,7 @@ fun ProgressSection(
                 contentAlignment = Alignment.Center
             ) {
                 Column {
-                    CircularPercentage(percentage = 0.65f, label = "65%")
+                    CircularPercentage(percentage = 0.00f, label = "0%")
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Level:1",

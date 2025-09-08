@@ -2,13 +2,16 @@ package com.example.quizapp.presentation.home.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -28,11 +31,8 @@ fun UserHeader(username: String) {
             .fillMaxWidth()
             .height(220.dp)
             .background(
-                brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                    listOf(
-                        Purple1,
-                        Purple2
-                    )
+                brush = Brush.linearGradient(
+                    listOf(Purple1, Purple2)
                 )
             )
     ) {
@@ -54,7 +54,7 @@ fun UserHeader(username: String) {
 
         Column(modifier = Modifier.padding(start = 20.dp, top = 56.dp)) {
             Text(
-                text = "Hello ${username}",
+                text = "Hello $username",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
@@ -67,19 +67,25 @@ fun UserHeader(username: String) {
             )
         }
 
-        IconButton(
-            onClick = { /* trophy */ },
+        // coin + points at top right inside rounded border
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 16.dp, top = 16.dp)
-                .size(42.dp)
+                .padding(top = 16.dp, end = 20.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.White.copy(alpha = 0.15f)) // subtle bg
+                .border(1.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.outline_trophy_24),
-                contentDescription = "profile",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
+                painter = painterResource(id = R.drawable.coin),
+                contentDescription = "Coin",
+                modifier = Modifier.size(22.dp),
+                tint = Color.Unspecified
             )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("125", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }

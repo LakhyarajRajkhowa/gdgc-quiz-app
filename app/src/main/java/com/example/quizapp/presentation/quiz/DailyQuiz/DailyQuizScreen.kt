@@ -1,7 +1,6 @@
-package com.example.quizapp.presentation.quiz
+package com.example.quizapp.presentation.quiz.DailyQuiz
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -36,19 +35,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.text.HtmlCompat
 import com.example.quizapp.R
 import com.example.quizapp.data.models.Question
 import kotlinx.coroutines.delay
-import androidx.core.text.htmlEncode
-
 
 
 @Composable
-fun QuizStartScreen(
+fun DailyQuizStartScreen(
     totalQuestions: Int = 10,
     secondsPerQuestion: Int = 30,
     onBack: () -> Unit = {},
@@ -152,15 +149,11 @@ fun QuizStartScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-fun QuizStartScreenPreview() {
-    QuizStartScreen()
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuizScreen(
+fun DailyQuizScreen(
     questions: List<Question>,
     onBack: () -> Unit = {},
     onFinish: (score: Int, total: Int) -> Unit = { _, _ -> }
@@ -452,7 +445,7 @@ fun LeaveQuizDialog(
     onLeave: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = { onDismiss() }) {
+    Dialog(onDismissRequest = { onDismiss() }) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()

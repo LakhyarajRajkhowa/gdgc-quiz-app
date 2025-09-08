@@ -1,7 +1,10 @@
 package com.example.quizapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -20,8 +23,16 @@ import com.example.quizapp.data.repository.HomeRepository
 import com.example.quizapp.data.repository.QuizRepository
 import com.example.quizapp.R
 import com.example.quizapp.data.storage.TokenManager
+import com.example.quizapp.presentation.common.ComingSoonScreen
+import com.example.quizapp.presentation.home.components.JoinQuizDialog
 import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModel
 import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModelFactory
+import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizManager
+import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModel
+import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModelFactory
+import android.util.Log
+import com.example.quizapp.data.storage.extractUserIdFromToken
+import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizSimpleScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
@@ -31,6 +42,7 @@ fun AppNavHost(navController: NavHostController) {
     // 🔹 TokenManager
     val tokenManager = remember { TokenManager(context) }
     val isLoggedIn = tokenManager.getToken() != null   // ✅ check if token exists
+    val token = tokenManager.getToken() ?: ""
 
     // ViewModels
     val authViewModel: AuthViewModel = viewModel(
@@ -49,6 +61,17 @@ fun AppNavHost(navController: NavHostController) {
             DailyQuizRepository(DailyQuizApiClient.dailyQuizApiService)
         )
     )
+
+    val liveQuizViewModel: LiveQuizViewModel = viewModel(
+        factory = LiveQuizViewModelFactory(
+            QuizRepository(ApiClient.getService()),
+            LiveQuizManager(
+                baseUrl = "https://quiz-app-backend-7m74.onrender.com",
+               token = token // <- inject logged-in user id here
+            )
+        )
+    )
+
 
     val dataStoreManager = remember { DataStoreManager(context) }
 
@@ -137,10 +160,13 @@ fun AppNavHost(navController: NavHostController) {
 
         // 🔹 HOME
         composable(NavRoutes.HOME) {
+            var showJoinDialog by remember { mutableStateOf(false) }
+
             HomeScreen(
                 homeViewModel = homeViewModel,
                 dataStoreManager = dataStoreManager,
-                onJoinQuiz = { navController.navigate(NavRoutes.JOIN_QUIZ) },
+                onJoinLiveQuiz = {navController.navigate(NavRoutes.JOIN_QUIZ)},
+                onJoinQuiz = { },
                 onFabClick = { navController.navigate(NavRoutes.CREATE_QUIZ_SETUP) },
                 onNavHome = {
                     navController.navigate(NavRoutes.HOME) {
@@ -148,13 +174,48 @@ fun AppNavHost(navController: NavHostController) {
                         restoreState = true
                     }
                 },
-                onNavLibrary = { navController.navigate(NavRoutes.LIBRARY) },
-                onNavLeaderboard = { navController.navigate(NavRoutes.LEADERBOARD) },
-                onNavMe = { navController.navigate(NavRoutes.PROFILE) },
+                onNavLibrary = { navController.navigate(NavRoutes.COMING_SOON) },
+                onNavLeaderboard = { navController.navigate(NavRoutes.COMING_SOON) },
+                onNavMe = { navController.navigate(NavRoutes.COMING_SOON) },
                 onGetStartedClick = { navController.navigate(NavRoutes.DAILY_QUIZ) }
             )
         }
 
+        composable(NavRoutes.JOIN_QUIZ) {
+            val token = tokenManager.getToken() ?: ""
+            val context = LocalContext.current
+            val quizManager = remember { LiveQuizManager("https://quiz-app-backend-7m74.onrender.com", token) }
+
+            JoinQuizDialog(
+                onDismiss = { navController.popBackStack() },
+                onJoinQuiz = { code ->
+
+                    liveQuizViewModel.startQuiz(code)
+                    // use userId from datastore/auth
+                    Log.d("Token Check", "Token: ${token}")
+                    Log.d("func call ckeck", "Token: ${token}")
+
+                    val userId = extractUserIdFromToken(token)// replace with actual logged-in userId
+                    Log.d("Token Check", "userID: ${userId}")
+
+                    quizManager.connect(code, userId)
+
+                    // move to Live Quiz screen
+                    navController.navigate(NavRoutes.LIVE_QUIZ)
+                }
+            )
+        }
+
+        composable(NavRoutes.LIVE_QUIZ) {
+            val token = tokenManager.getToken() ?: ""
+            val userId = extractUserIdFromToken(token)
+
+            LiveQuizSimpleScreen(
+                viewModel = liveQuizViewModel,
+                quizId = "95",   // Or pass dynamically via arguments
+                userId = userId
+            )
+        }
         // 🔹 DAILY QUIZ
         composable(NavRoutes.DAILY_QUIZ) {
             QuizRoute(
@@ -166,6 +227,12 @@ fun AppNavHost(navController: NavHostController) {
                 },
                 onViewLeaderboard = {}
             )
+        }
+
+
+
+        composable(NavRoutes.COMING_SOON) {
+            ComingSoonScreen(onBack = { navController.popBackStack() })
         }
 
         // 🔹 CREATE QUIZ
@@ -201,4 +268,10 @@ fun AppNavHost(navController: NavHostController) {
         }
 
     }
+}
+
+private fun LiveQuizManager.connect(
+    string: String,
+    i: Int?
+) {
 }

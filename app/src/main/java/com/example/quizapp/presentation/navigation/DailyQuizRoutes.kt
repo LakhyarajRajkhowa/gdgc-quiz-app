@@ -8,8 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.quizapp.data.repository.DailyQuizRepository
 import com.example.quizapp.data.DailyQuizApi.DailyQuizApiClient
+import com.example.quizapp.presentation.common.QuizLoadingScreen
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizScreen
+import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizStartScreen
 import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModel
 import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModelFactory
+
 
 @Composable
 fun QuizRoute(
@@ -30,9 +34,7 @@ fun QuizRoute(
 
     when {
         viewModel.isLoading.value -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            QuizLoadingScreen()
         }
         viewModel.errorMessage.value != null -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -41,7 +43,7 @@ fun QuizRoute(
         }
         !hasStarted -> {
             // ✅ Show start screen first
-            QuizStartScreen(
+            DailyQuizStartScreen(
                 onBegin = { hasStarted = true },
                 onBack = onBack
             )
@@ -55,7 +57,7 @@ fun QuizRoute(
             )
         }
         else -> {
-            QuizScreen(
+            DailyQuizScreen(
                 questions = viewModel.quizQuestions.value,
                 onBack = onBack,
                 onFinish = { score, total ->

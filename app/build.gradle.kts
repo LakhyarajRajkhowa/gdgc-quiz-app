@@ -68,7 +68,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
-
+    implementation("io.socket:socket.io-client:2.1.0") {
+        exclude(group = "org.json", module = "json") // prevent duplicate org.json
+    }
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

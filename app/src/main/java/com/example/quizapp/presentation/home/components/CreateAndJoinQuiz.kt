@@ -1,5 +1,6 @@
 package com.example.quizapp.presentation.home.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -111,7 +112,11 @@ fun JoinQuizDialog(
             joinCode = joinCode,
             onJoinCodeChange = { joinCode = it },
             onDismiss = onDismiss,
-            onJoin = { onJoinQuiz(joinCode) }
+            onJoin = {
+                Log.d("func call check", "inside join quiz")
+
+                onJoinQuiz(joinCode)
+            }
         )
     }
 }

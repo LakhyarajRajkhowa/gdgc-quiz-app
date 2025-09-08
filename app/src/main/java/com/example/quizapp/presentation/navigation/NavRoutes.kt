@@ -16,6 +16,7 @@ object NavRoutes {
     const val PROFILE = "profile"
     const val LIBRARY = "library"
     const val DAILY_QUIZ = "daily_quiz"
+    const val COMING_SOON = "coming_soon"
 
 
 

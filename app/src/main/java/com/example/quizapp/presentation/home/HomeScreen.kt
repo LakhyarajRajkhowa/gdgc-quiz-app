@@ -40,7 +40,8 @@ private val SoftYellow = Color(0xFFF6C66B)
 fun HomeScreen(
     homeViewModel: HomeViewModel,
     dataStoreManager: DataStoreManager,
-    onJoinQuiz: () -> Unit = {},
+    onJoinLiveQuiz: () -> Unit = {},
+    onJoinQuiz: (String) -> Unit = {},
     onFabClick: () -> Unit = {},
     onNavHome: () -> Unit = {},
     onNavLibrary: () -> Unit = {},
@@ -73,7 +74,7 @@ fun HomeScreen(
                 onJoinQuiz = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         showBottomSheet = false
-                        showJoinDialog = true
+                        onJoinQuiz("")
                     }
                 }
             )
@@ -81,15 +82,6 @@ fun HomeScreen(
     }
 
 
-    if (showJoinDialog) {
-        JoinQuizDialog(
-            onDismiss = { showJoinDialog = false },
-            onJoinQuiz = { code ->
-                showJoinDialog = false
-                onJoinQuiz()  // pass code to parent if needed
-            }
-        )
-    }
 
 
 
@@ -159,7 +151,7 @@ fun HomeScreen(
             ){
                 LiveQuizCard(
                 title = state.liveQuizTitle,
-                onJoinQuiz = onJoinQuiz
+                onJoinLiveQuiz = onJoinLiveQuiz
             )
 
                 ProgressSection(

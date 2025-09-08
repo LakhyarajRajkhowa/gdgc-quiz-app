@@ -1,5 +1,6 @@
 package com.example.quizapp.presentation.quiz
 
+import android.R.bool
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -48,6 +49,9 @@ fun CreateQuestionScreen(
     var currentIndex by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+
+    var quizCode by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val progress = (currentIndex + 1) / totalQuestions.toFloat()
 
@@ -109,6 +113,16 @@ fun CreateQuestionScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            if (isLoading) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
             Button(
                 onClick = {
                     if (questionText.isNotBlank() && optionA.isNotBlank() &&
@@ -130,9 +144,13 @@ fun CreateQuestionScreen(
                             isLoading = true
                             sendQuizToBackend(quizTitle, questions) { success, error ->
                                 isLoading = false
-                                message = success ?: error
-                               // if (success != null) onFinishQuiz()
+                                if (success != null) {
+                                    quizCode = success  // ✅ store code in flag
+                                } else {
+                                    errorMessage = error // ✅ store error in flag
+                                }
                             }
+
                         } else {
                             // go to o question
                             currentIndex++
@@ -153,22 +171,22 @@ fun CreateQuestionScreen(
 
             val context = LocalContext.current
 
-            if (message?.startsWith("✅") == true) {
+            if (quizCode != null) {
                 AlertDialog(
-                    onDismissRequest = { /* prevent dismiss outside */ },
+                    onDismissRequest = { /* don’t dismiss outside */ },
                     confirmButton = {
                         Row {
                             Button(onClick = {
                                 // Copy code to clipboard
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Quiz Code", message)
+                                val clip = ClipData.newPlainText("Quiz Code", quizCode)
                                 clipboard.setPrimaryClip(clip)
                             }) {
                                 Text("Copy")
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(onClick = {
-                                message = null
+                                quizCode = null
                                 onFinishQuiz() // ✅ navigate only when OK is pressed
                             }) {
                                 Text("OK")
@@ -176,9 +194,23 @@ fun CreateQuestionScreen(
                         }
                     },
                     title = { Text("Quiz Created!") },
-                    text = { Text(message ?: "") }
+                    text = { Text("Joining Code: $quizCode") }
                 )
             }
+
+            if (errorMessage != null) {
+                AlertDialog(
+                    onDismissRequest = { errorMessage = null },
+                    confirmButton = {
+                        Button(onClick = { errorMessage = null }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("Error") },
+                    text = { Text(errorMessage ?: "") }
+                )
+            }
+
 
 
         }
@@ -211,19 +243,19 @@ private fun sendQuizToBackend(
                 if (response.isSuccessful) {
                     val body = response.body()
                     val codeMessage = if (body?.code != null) {
-                        " Quiz created! Code: ${body.code}"
+                        "${body.code}"
                     } else {
-                        " Quiz created! ID: ${body?.quizId}"
+                        "${body?.quizId}"
                     }
                     // ❌ don’t call onFinishQuiz() here
                     onResult(codeMessage, null)
                 } else {
-                    onResult(null, "❌ Failed: ${response.code()} ${response.message()}")
+                    onResult(null, "Failed: ${response.code()} ${response.message()}")
                 }
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                onResult(null, "❌ Error: ${e.message}")
+                onResult(null, "Error: ${e.message}")
             }
         }
     }

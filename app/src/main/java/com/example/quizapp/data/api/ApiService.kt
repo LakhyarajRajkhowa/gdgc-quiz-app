@@ -6,6 +6,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ApiService {
     // 🔹 Authentication
@@ -28,6 +29,11 @@ interface ApiService {
    // @POST("api/quiz/join")
     //suspend fun joinQuiz(@Body request: JoinQuizRequest): ApiResponse // Join quiz by code
 
+    @POST("api/quiz/start/{quizId}")
+    suspend fun startQuiz(
+        @Path("quizId") quizId: String
+    ): Response<Unit>  // or Response<YourResponseModel> if backend returns JSON
+
   //  @GET("quiz/{code}")
   //  suspend fun getQuiz(@Path("code") code: String): Quiz   // Get quiz by code
 
@@ -36,7 +42,7 @@ interface ApiService {
     @GET("user/performance")
     suspend fun getPerformance(@Header("Authorization") token: String): PerformanceResponse
 
-    @GET("home")
+    @GET("api/home")
     suspend fun getHomeData(@Header("Authorization") token: String): HomeResponse
 
     @GET("dailyChallenge")

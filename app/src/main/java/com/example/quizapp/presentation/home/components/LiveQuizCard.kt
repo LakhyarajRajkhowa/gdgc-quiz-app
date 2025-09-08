@@ -1,5 +1,6 @@
 package com.example.quizapp.presentation.home.components
 
+import android.R.attr.text
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,7 +19,7 @@ import com.example.quizapp.R
 private val SoftYellow = Color(0xFFF6C66B)
 
 @Composable
-fun LiveQuizCard(title: String?, onJoinQuiz: () -> Unit) {
+fun LiveQuizCard(title: String?, onJoinLiveQuiz: () -> Unit) {
     // if (title == null) return
 
     Card(
@@ -49,14 +50,22 @@ fun LiveQuizCard(title: String?, onJoinQuiz: () -> Unit) {
                     )
                 }
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
+                if (title == null)
+                    Text(
+
+                        text = "No Quiz is Live Now!",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                else Text(
+
                     text = "${title} is Live Now!",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedButton(
-                    onClick = onJoinQuiz,
+                    onClick = onJoinLiveQuiz,
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.width(110.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
