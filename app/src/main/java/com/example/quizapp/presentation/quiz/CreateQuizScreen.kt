@@ -185,7 +185,7 @@ fun CreateQuestionScreen(
                         Row {
                             Button(onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Quiz ID", quizCode) // ✅ Updated label
+                                val clip = ClipData.newPlainText("Quiz Code", quizCode) // ✅ Updated label
                                 clipboard.setPrimaryClip(clip)
                             }) {
                                 Text("Copy")
@@ -200,7 +200,7 @@ fun CreateQuestionScreen(
                         }
                     },
                     title = { Text("Quiz Created!") },
-                    text = { Text("Quiz ID: $quizCode") }  // ✅ Updated text
+                    text = { Text("Quiz Code: $quizCode") }  // ✅ Updated text
                 )
             }
 
@@ -249,8 +249,8 @@ private fun sendQuizToBackend(
             withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     val body = response.body()
-                    val quizIdMessage = body?.quizId?.toString() ?: "Invalid ID"
-                    onResult(quizIdMessage, null)
+                    val quizCodeMessage = body?.code ?: "Invalid Code"
+                    onResult(quizCodeMessage, null)
 
                 } else {
                     onResult(null, "Failed: ${response.code()} ${response.message()}")
@@ -263,4 +263,5 @@ private fun sendQuizToBackend(
         }
     }
 }
+
 

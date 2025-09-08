@@ -43,3 +43,39 @@ fun extractUserIdFromToken(token: String): Int? {
         null
     }
 }
+
+fun extractUsernameFromToken(token: String): String? {
+    return try {
+        val parts = token.split(".")
+        if (parts.size < 2) return null
+        val payload = parts[1]
+
+        // Decode Base64 URL-safe without padding
+        val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP)
+        val decodedString = String(decodedBytes, Charsets.UTF_8)
+
+        // Parse JSON
+        val json = JSONObject(decodedString)
+        json.optString("username", null)  // return username or null if not present
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
+fun extractIsAdminFromToken(token: String): Boolean? {
+    return try {
+        val parts = token.split(".")
+        if (parts.size < 2) return null
+        val payload = parts[1]
+
+        val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP)
+        val decodedString = String(decodedBytes, Charsets.UTF_8)
+
+        val json = JSONObject(decodedString)
+        if (json.has("isAdmin")) json.getBoolean("isAdmin") else null
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}

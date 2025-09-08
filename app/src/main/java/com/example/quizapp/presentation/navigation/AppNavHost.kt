@@ -1,5 +1,6 @@
 package com.example.quizapp.presentation.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,13 +31,13 @@ import com.example.quizapp.presentation.quiz.DailyQuiz.DailyQuizViewModelFactory
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizManager
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModel
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizViewModelFactory
-import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.example.quizapp.data.storage.extractUserIdFromToken
 import com.example.quizapp.presentation.common.QuizLoadingScreen
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizScreen
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun AppNavHost(navController: NavHostController) {
 
@@ -46,7 +47,6 @@ fun AppNavHost(navController: NavHostController) {
     val tokenManager = remember { TokenManager(context) }
     val isLoggedIn = tokenManager.getToken() != null   // ✅ check if token exists
     val token = tokenManager.getToken() ?: ""
-
     // ViewModels
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(
@@ -70,8 +70,10 @@ fun AppNavHost(navController: NavHostController) {
             QuizRepository(ApiClient.getService()),
             LiveQuizManager(
                 baseUrl = "https://quiz-app-backend-7m74.onrender.com",
-               token = token // <- inject logged-in user id here
-            )
+               token = token, // <- inject logged-in user id here
+
+            ),
+            userId = extractUserIdFromToken(token)
         )
     )
 
@@ -205,31 +207,31 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
 
-        composable(
-            "live_quiz/{quizId}",
-            arguments = listOf(navArgument("quizId") { type = NavType.StringType })
-        ) { backStackEntry ->
+        composable("live_quiz/{quizCode}",
+            arguments = listOf(navArgument("quizCode") { type = NavType.StringType }))
+        { backStackEntry ->
 
-            val token = tokenManager.getToken() ?: ""
+
             val userId = extractUserIdFromToken(token)
-            val quizId = backStackEntry.arguments?.getString("quizId") ?: ""
+            val quizCode = backStackEntry.arguments?.getString("quizCode") ?: ""
 
             var showQuizScreen by remember { mutableStateOf(false) }
 
             // Initialize connection once
             LaunchedEffect(Unit) {
-                liveQuizViewModel.startLiveQuizConnection(quizId, userId)
+                liveQuizViewModel.startLiveQuizConnection(quizCode, userId)
             }
 
             if (showQuizScreen) {
                 LiveQuizScreen(
                     viewModel = liveQuizViewModel,
-                    quizId = quizId,
+                    quizCode= quizCode,
                     userId = userId,
-                    onNavigateToLeaderboard = { id ->
-                        navController.navigate("leaderboard/$id") {
-                            popUpTo("live_quiz/$id") { inclusive = true }
-                        }
+                    onNavigateToLeaderboard = { code ->
+                        navController.navigate("quiz_complete_screen/$code")
+//                        navController.navigate("leaderboard/$id") {
+//                            popUpTo("live_quiz/$id") { inclusive = true }
+//                        }
                     }
                 )
             } else {
@@ -261,6 +263,35 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
 
+        composable("quiz_complete_screen/{code}",
+            arguments = listOf(navArgument("code") { type = NavType.StringType }))
+        { backStackEntry ->
+            val code = backStackEntry.arguments?.getString("code") ?: ""
+
+            QuizCompletedScreen(
+                score = liveQuizViewModel.score.value,
+                totalScore = liveQuizViewModel.totalScore.value,
+                onViewLeaderboard = {
+                    navController.navigate("leaderboard_screen")
+                },
+                onGoHome = {
+                    navController.navigate(NavRoutes.HOME) {
+                        popUpTo(NavRoutes.HOME) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("leaderboard_screen") {
+            LeaderboardScreen(
+                liveQuizViewModel = liveQuizViewModel,
+                onGoHome = {
+                    navController.navigate(NavRoutes.HOME) {
+                        popUpTo(NavRoutes.HOME) { inclusive = true }
+                    }
+                }
+            )
+        }
 
 
         composable(NavRoutes.COMING_SOON) {

@@ -69,13 +69,13 @@ fun OutlinedOption(
                 Spacer(modifier = Modifier.weight(1f))
                 when {
                     isCorrectAnswer -> Text(
-                        text = "✓",
+                        text = "",
                         color = correctGreen,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(end = 8.dp)
                     )
                     isIncorrectSelected -> Text(
-                        text = "✗",
+                        text = "",
                         color = incorrectRed,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(end = 8.dp)

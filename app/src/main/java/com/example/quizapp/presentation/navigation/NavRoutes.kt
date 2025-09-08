@@ -13,8 +13,8 @@ object NavRoutes {
     const val JOIN_QUIZ = "join_quiz"
     const val LIVE_QUIZ = "live_quiz/{quizId}"
     const val START_QUIZ = "start_quiz"
-
-    const val LEADERBOARD = "leaderboard/"
+    const val QUIZ_COMPLETE_SCREEN = "quiz_complete_screen/{code}"
+    const val LEADERBOARD = "leaderboard_screen"
     const val PROFILE = "profile"
     const val LIBRARY = "library"
     const val DAILY_QUIZ = "daily_quiz"

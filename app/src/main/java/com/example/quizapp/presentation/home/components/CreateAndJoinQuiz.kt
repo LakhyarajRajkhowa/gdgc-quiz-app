@@ -43,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun QuizOptionsBottomSheet(
+    isAdmin: Boolean,  // Pass this from wherever you call it
     onCreateQuiz: () -> Unit = {},
     onJoinQuiz: () -> Unit = {}
 ) {
@@ -50,11 +51,7 @@ fun QuizOptionsBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(
-                start = 10.dp,
-                top = 25.dp,
-                end = 10.dp
-            )
+            .padding(start = 10.dp, top = 25.dp, end = 10.dp)
     ) {
 
         Row(
@@ -71,9 +68,10 @@ fun QuizOptionsBottomSheet(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7D4CFF),
                     contentColor = Color.White
-                )
+                ),
+                enabled = isAdmin  // Disable if not admin
             ) {
-                Text("Create Quiz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text("Create Quiz (Admin)", fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
         }
 
@@ -89,7 +87,8 @@ fun QuizOptionsBottomSheet(
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF7D4CFF),
                 contentColor = Color.White
-            )
+            ),
+            enabled = isAdmin  // Disable if not admin
         ) {
             Text("Start Quiz (Admin)", fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
@@ -113,7 +112,6 @@ fun JoinQuizDialog(
             onJoinCodeChange = { joinCode = it },
             onDismiss = onDismiss,
             onJoin = {
-                Log.d("func call check", "inside join quiz")
 
                 onJoinQuiz(joinCode)
             }

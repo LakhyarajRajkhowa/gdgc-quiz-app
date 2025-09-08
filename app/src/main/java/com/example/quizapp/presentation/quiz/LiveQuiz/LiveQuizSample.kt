@@ -1,6 +1,7 @@
 package com.example.quizapp.presentation.quiz.LiveQuiz
 
 import android.text.Html
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,7 @@ import androidx.core.text.HtmlCompat
 import com.example.quizapp.R
 import com.example.quizapp.presentation.components.LeaveQuizDialog
 import com.example.quizapp.presentation.components.OutlinedOption
+import io.socket.client.IO.socket
 import kotlinx.coroutines.delay
 import org.json.JSONArray
 
@@ -30,9 +32,9 @@ import org.json.JSONArray
 @Composable
 fun LiveQuizScreen(
     viewModel: LiveQuizViewModel,
-    quizId: String,
+    quizCode: String,
     userId: Int?,
-    onNavigateToLeaderboard: (quizId: String) -> Unit
+    onNavigateToLeaderboard: (quizCode: String) -> Unit
 ) {
     val quizStarted by viewModel.quizStarted.collectAsState()
     val newQuestion by viewModel.newQuestion.collectAsState()
@@ -40,12 +42,33 @@ fun LiveQuizScreen(
     val quizEnded by viewModel.quizEnded.collectAsState()
     val error by viewModel.error.collectAsState()
 
+
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     var timeUp by remember { mutableStateOf(false) }
     var showLeaveDialog by remember { mutableStateOf(false) }
     var currentQuestionId by remember { mutableStateOf<String?>(null) }
     var timeLeft by remember { mutableStateOf(0) } // seconds for countdown
+    var submitted by remember { mutableStateOf(false) }
 
+    var correctAnswer by remember { mutableStateOf("") }
+    val leaderboard by viewModel.leaderboardState.collectAsState()
+
+
+
+    LaunchedEffect(quizEnded) {
+        if (quizEnded) {
+            Log.d("LiveQuizScreen", "Quiz ended. Final leaderboard: $leaderboard")
+            onNavigateToLeaderboard(quizCode)
+        }
+    }
+    LaunchedEffect(questionEnded) {
+        questionEnded?.let {
+            if (it.optString("questionId") == currentQuestionId) {
+                correctAnswer = it.optString("correct") // <-- store correct answer here
+                timeUp = true
+            }
+        }
+    }
     // Reset state for each new question
     LaunchedEffect(newQuestion) {
         newQuestion?.let {
@@ -76,6 +99,9 @@ fun LiveQuizScreen(
         }
     }
 
+
+
+
     BackHandler { showLeaveDialog = true }
 
     if (showLeaveDialog) {
@@ -83,7 +109,7 @@ fun LiveQuizScreen(
             onContinue = { showLeaveDialog = false },
             onLeave = {
                 viewModel.disconnect()
-                onNavigateToLeaderboard(quizId)
+                onNavigateToLeaderboard(quizCode)
             },
             onDismiss = { showLeaveDialog = false }
         )
@@ -138,7 +164,7 @@ fun LiveQuizScreen(
                     onClick = {
                         selectedIndex?.let { idx ->
                             viewModel.submitAnswer(
-                                quizId,
+                                quizCode,
                                 newQuestion?.optString("id") ?: "",
                                 userId,
                                 newQuestion?.optJSONArray("options")?.optString(idx) ?: ""
@@ -198,40 +224,41 @@ fun LiveQuizScreen(
                 )
 
                 Spacer(Modifier.height(20.dp))
+
                 val options = question.optJSONArray("options") ?: JSONArray()
                 val letters = listOf("A", "B", "C", "D")
-                val correctAnswer = question.optString("correct") // available only after timeUp
+                  // available only after timeUp
 
+                val cleanAnswer = HtmlCompat.fromHtml(correctAnswer, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+
+                 Log.d("LiveQuizScreen", "correct answer: ${cleanAnswer}")
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     for (i in 0 until options.length()) {
                         val optionText = options.optString(i)
+                        val cleanOption = HtmlCompat.fromHtml(optionText, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
                         val selected = selectedIndex == i
-
-                        val borderColor = when {
-                            timeUp -> when {
-                                optionText == correctAnswer -> Color(0xFF4CAF50) // green correct
-                                selected && optionText != correctAnswer -> Color(0xFFF44336) // red wrong
-                                else -> Color(0xFFBDBDBD) // gray
-                            }
-                            selected -> Color(0xFF3A86FF) // blue selection
-                            else -> Color(0xFFBDBDBD) // gray default
-                        }
 
                         OutlinedOption(
                             letter = if (i < letters.size) letters[i] + "." else "${i + 1}.",
                             text = optionText,
                             onClick = { if (!timeUp) selectedIndex = i },
                             selected = selected,
-                            borderColor = borderColor,
+                            borderColor = when {
+                                timeUp && cleanOption == cleanAnswer -> correctGreen
+                                timeUp && selected && cleanOption != cleanAnswer -> incorrectRed
+                                selected -> Color(0xFF3A86FF)
+                                else -> Color(0xFFBDBDBD)
+                            },
                             enabled = !timeUp,
-                            correctGreen = Color(0xFF4CAF50),
-                            incorrectRed = Color(0xFFF44336),
+                            correctGreen = correctGreen,
+                            incorrectRed = incorrectRed,
                             showIndicator = timeUp,
-                            isCorrectAnswer = timeUp && optionText == correctAnswer,
-                            isIncorrectSelected = timeUp && selected && optionText != correctAnswer,
+                            isCorrectAnswer = timeUp && cleanOption == cleanAnswer,
+                            isIncorrectSelected = timeUp && selected && cleanOption != cleanAnswer,
                             timeUp = timeUp
                         )
                     }
+
                 }
                 Spacer(Modifier.height(80.dp))
             }
