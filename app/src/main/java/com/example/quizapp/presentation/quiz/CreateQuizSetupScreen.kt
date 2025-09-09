@@ -1,11 +1,13 @@
 package com.example.quizapp.presentation.quiz
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,8 +34,9 @@ fun CreateQuizSetupScreen(
     ) {
         Text(
             text = "Create a Quiz",
-            fontSize = 22.sp,
-            color = MaterialTheme.colorScheme.primary
+            fontSize = 28.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -81,9 +84,17 @@ fun CreateQuizSetupScreen(
                     onNext(quizName.text, num, time)
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF7D4CFF),
+                contentColor = Color.White
+            )
         ) {
-            Text("Next")
+            Text(
+                text = "Next",
+                fontSize = 18.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
         }
     }
 }

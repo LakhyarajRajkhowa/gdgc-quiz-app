@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -16,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -50,7 +53,7 @@ import com.example.quizapp.presentation.navigation.BottomNavItem
 import kotlinx.coroutines.launch
 
 
-private val Purple1 = Color(0xFF7D4CFF)
+val Purple1 = Color(0xFF7D4CFF)
 private val Purple2 = Color(0xFF6A3DF0)
 private val SoftYellow = Color(0xFFF6C66B)
 
@@ -119,8 +122,8 @@ fun HomeScreen(
                     containerColor = Purple1,
                     contentColor = Color.White,
                     modifier = Modifier
-                        .size(64.dp)
-                        .offset(y = (114).dp),
+                        .size(54.dp)
+                        .offset(y = (108).dp),
                     shape = CircleShape
                 ) {
                     Icon(
@@ -172,6 +175,11 @@ fun HomeScreen(
                 onJoinLiveQuiz = onJoinLiveQuiz
             )
 
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color.LightGray, thickness = 1.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+
                 ProgressSection(
                     ranking = state.ranking,
                     totalScore = state.totalScore,
@@ -179,6 +187,8 @@ fun HomeScreen(
                     coins = state.coins,
                     progressPercent = state.progressPercent
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 DailyChallengeCard(
                     challengeText = state.dailyChallenge ?: "No challenge today",

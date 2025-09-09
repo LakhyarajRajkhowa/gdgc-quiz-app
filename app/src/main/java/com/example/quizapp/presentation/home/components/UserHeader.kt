@@ -63,7 +63,7 @@ fun UserHeader(username: String) {
             Text(
                 text = "We are happy to have you back",
                 color = Color.White.copy(alpha = 0.9f),
-                fontSize = 16.sp
+                fontSize = 13.sp
             )
         }
 

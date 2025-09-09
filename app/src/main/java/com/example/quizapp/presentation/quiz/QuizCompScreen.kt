@@ -108,7 +108,7 @@ fun QuizCompletedScreen(
                         onClick = onViewLeaderboard,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp),
+                            .height(40.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF7D4CFF),
@@ -117,7 +117,7 @@ fun QuizCompletedScreen(
                     ) {
                         Text(
                             "View Leaderboard",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp
                         )
                     }
@@ -128,7 +128,7 @@ fun QuizCompletedScreen(
                         onClick = onGoHome,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp),
+                            .height(40.dp),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.5.dp, Color.Black),
                         colors = ButtonDefaults.outlinedButtonColors(
@@ -138,7 +138,7 @@ fun QuizCompletedScreen(
                     ) {
                         Text(
                             "Go to Home",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp
                         )
                     }

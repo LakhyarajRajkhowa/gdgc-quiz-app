@@ -71,7 +71,7 @@ fun QuizOptionsBottomSheet(
                 ),
                 enabled = isAdmin  // Disable if not admin
             ) {
-                Text("Create Quiz (Admin)", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text("Create Quiz (Admin)", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             }
         }
 
@@ -90,7 +90,7 @@ fun QuizOptionsBottomSheet(
             ),
             enabled = isAdmin  // Disable if not admin
         ) {
-            Text("Start Quiz (Admin)", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text("Start Quiz (Admin)", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
         }
     }
 }
@@ -188,8 +188,7 @@ private fun JoinQuizDialogContent(
                     unfocusedTextColor = Color.Black
                 ),
                 textStyle = LocalTextStyle.current.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 18.sp
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true
@@ -201,7 +200,7 @@ private fun JoinQuizDialogContent(
                 onClick = onJoin,
                 modifier = Modifier
                     .wrapContentWidth()
-                    .height(56.dp),
+                    .height(40.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7D4CFF),
@@ -211,8 +210,8 @@ private fun JoinQuizDialogContent(
             ) {
                 Text(
                     text = "Start",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }

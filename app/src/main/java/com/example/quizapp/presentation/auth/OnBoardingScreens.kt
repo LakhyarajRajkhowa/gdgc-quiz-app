@@ -81,14 +81,14 @@ fun OnboardingScreen(
                 onClick = onButton1Click,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(40.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = Color.Black
                 )
             ) {
-                Text(button1Text, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(button1Text, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             }
 
             // Optional Secondary Button
@@ -98,7 +98,7 @@ fun OnboardingScreen(
                     onClick = onButton2Click,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(40.dp),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(2.dp, Color.White),
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -106,7 +106,7 @@ fun OnboardingScreen(
                         contentColor = Color.White
                     )
                 ) {
-                    Text(button2Text, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(button2Text, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 }
             }
         }

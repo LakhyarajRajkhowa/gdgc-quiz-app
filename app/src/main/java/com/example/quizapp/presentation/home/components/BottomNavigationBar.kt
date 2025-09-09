@@ -26,7 +26,7 @@ fun BottomNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp)
+                .height(50.dp)
                 .padding(horizontal = 8.dp),
 
             horizontalArrangement = Arrangement.SpaceAround,
@@ -37,7 +37,7 @@ fun BottomNavigationBar(
                     Icons.Default.Home,
                     contentDescription = "Home",
                     tint = if (selectedItem == BottomNavItem.HOME) Color.White else Color.Gray,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(25.dp)
 
                 )
             }
@@ -46,7 +46,7 @@ fun BottomNavigationBar(
                     painter = painterResource(id = R.drawable.baseline_library_books_24),
                     contentDescription = "Library",
                     tint = if (selectedItem == BottomNavItem.LIBRARY) Color.White else Color.Gray,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(21.dp)
                 )
             }
             Spacer(modifier = Modifier.width(64.dp)) // space for FAB
@@ -55,7 +55,7 @@ fun BottomNavigationBar(
                     painter = painterResource(id = R.drawable.outline_equalizer_24),
                     contentDescription = "Leaderboard",
                     tint = if (selectedItem == BottomNavItem.LEADERBOARD) Color.White else Color.Gray,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(25.dp)
                 )
             }
             IconButton(onClick = { onItemSelected(BottomNavItem.ME) }) {
@@ -63,7 +63,7 @@ fun BottomNavigationBar(
                     Icons.Default.Person,
                     contentDescription = "Me",
                     tint = if (selectedItem == BottomNavItem.ME) Color.White else Color.Gray,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(25.dp)
                 )
             }
         }

@@ -25,7 +25,7 @@ fun LiveQuizCard(title: String?, onJoinLiveQuiz: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp),
+            .height(130.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = SoftYellow)
     ) {
@@ -40,12 +40,13 @@ fun LiveQuizCard(title: String?, onJoinLiveQuiz: () -> Unit) {
                     Icon(
                         Icons.Default.Notifications,
                         contentDescription = "Reminder",
-                        tint = Color.Black
+                        tint = Color.Black,
+                        modifier = Modifier.size(17.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Reminder",
-                        fontSize = 16.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -54,13 +55,13 @@ fun LiveQuizCard(title: String?, onJoinLiveQuiz: () -> Unit) {
                     Text(
 
                         text = "No Quiz is Live Now!",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                 else Text(
 
                     text = "${title} is Live Now!",
-                    fontSize = 20.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -83,7 +84,7 @@ fun LiveQuizCard(title: String?, onJoinLiveQuiz: () -> Unit) {
                 Icon(
                     painter = painterResource(id = R.drawable.reminder),
                     contentDescription = "Reminder",
-                    modifier = Modifier.size(140.dp),
+                    modifier = Modifier.size(100.dp),
                     tint = Color.Unspecified
                 )
             }

@@ -20,7 +20,9 @@ fun DailyChallengeCard(challengeText: String, onGetStartedClick: () -> Unit = {}
     Spacer(modifier = Modifier.height(5.dp))
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp),
         shape = RoundedCornerShape(9.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF7E8EB))
     ) {
@@ -33,8 +35,8 @@ fun DailyChallengeCard(challengeText: String, onGetStartedClick: () -> Unit = {}
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Challenge your mind daily with fun quizzes and track your growth.",
-                    fontSize = 15.sp,
-                    maxLines = 3,
+                    fontSize = 13.sp,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -57,7 +59,7 @@ fun DailyChallengeCard(challengeText: String, onGetStartedClick: () -> Unit = {}
                 Icon(
                     painter = painterResource(id = R.drawable.daily_challenge),
                     contentDescription = "Daily Challenge",
-                    modifier = Modifier.size(150.dp),
+                    modifier = Modifier.size(130.dp),
                     tint = Color.Unspecified
                 )
             }

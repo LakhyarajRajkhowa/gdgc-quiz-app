@@ -43,10 +43,10 @@ fun ProgressSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("My Ranking: 0", fontWeight = FontWeight.Bold)
+                Text("My Ranking: 0", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("Total Scored earned: 0")
-                Text("Quizzes attempted: 0")
+                Text("Total Scored earned: 0", fontSize = 13.sp)
+                Text("Quizzes attempted: 0", fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
 

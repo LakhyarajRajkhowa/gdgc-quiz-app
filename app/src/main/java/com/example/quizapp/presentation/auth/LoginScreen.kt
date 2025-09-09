@@ -169,7 +169,7 @@ fun LoginScreen(
                         enabled = loginEnabled,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(40.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.DarkGray,
@@ -226,7 +226,7 @@ private fun TopDecorHeader(height: Dp) {
 }
 
 @Composable
-private fun DecorativeCircle(center: Offset, radius: Float, color: Color) {
+fun DecorativeCircle(center: Offset, radius: Float, color: Color) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(color = color, radius = radius, center = center)
     }
