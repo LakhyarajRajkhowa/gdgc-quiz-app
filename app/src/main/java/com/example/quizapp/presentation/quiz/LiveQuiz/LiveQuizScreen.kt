@@ -64,10 +64,12 @@ fun LiveQuizScreen(
     }
     LaunchedEffect(questionEnded) {
         questionEnded?.let {
-            if (it.optString("questionId") == currentQuestionId) {
+
+
                 correctAnswer = it.optString("correct") // <-- store correct answer here
                 timeUp = true
-            }
+                Log.d("livequizscreen", "correct answer in launched eefect: ${correctAnswer}")
+
         }
     }
     // Reset state for each new question
@@ -93,14 +95,7 @@ fun LiveQuizScreen(
         }
     }
 
-    // Mark question as ended
-    LaunchedEffect(questionEnded) {
-        questionEnded?.let {
-            if (it.optString("questionId") == currentQuestionId) {
-                timeUp = true
-            }
-        }
-    }
+
 
 
 
