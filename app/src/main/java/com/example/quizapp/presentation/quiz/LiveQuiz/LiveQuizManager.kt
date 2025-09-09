@@ -1,16 +1,10 @@
 package com.example.quizapp.presentation.quiz.LiveQuiz
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONArray
 import org.json.JSONObject
-
-
 
 class LiveQuizManager(
     private val baseUrl: String,
@@ -18,6 +12,8 @@ class LiveQuizManager(
 ) {
     private var socket: Socket? = null
     private var quizId: String? = null
+    var totalQuestions: String? = null
+
 
     fun connect(
         quizCode: String,
@@ -30,11 +26,12 @@ class LiveQuizManager(
         onAnswerReceived: (JSONObject) -> Unit,
         onError: (JSONObject) -> Unit
     ) {
-        if (socket != null && socket!!.connected()) {
-            Log.d("LiveQuizManager", "Already connected, skipping.")
-            return
-        }
-        try {
+//        if (socket != null && socket!!.connected()) {
+//        Log.d("LiveQuizManager", "Already connected, skipping.")
+//         return
+//         }
+
+         try {
             val opts = IO.Options().apply {
                 extraHeaders = mapOf("Authorization" to listOf("Bearer $token"))
             }
@@ -53,10 +50,8 @@ class LiveQuizManager(
 
             socket?.on("quizStarted") { args ->
                 val obj = args[0] as JSONObject
-                quizId = obj.getString("quizId")
                 onQuizStarted(obj.getString("quizId"))
                 Log.d("LiveQuizManager", "🚀 Quiz Started: ${obj.getString("quizId")}")
-
             }
 
             socket?.on("newQuestion") { args ->
@@ -71,25 +66,32 @@ class LiveQuizManager(
                 Log.d("LiveQuizManager", "⏱ Question Ended: $obj")
             }
 
-            socket?.on("quizEnded") { args ->
-                // leaderboard array: [{ user_id: 1, score: 25 }, ...]
-                val array = args[0] as JSONArray
-                val leaderboard = mutableListOf<Map<String, Any>>()
-                for (i in 0 until array.length()) {
-                    val item = array.getJSONObject(i)
-                    leaderboard.add(
-                        mapOf(
-                            "user_id" to item.getInt("user_id"),
-                            "score" to item.getInt("score")
-                        )
-                    )
-                }
-                onQuizEnded(leaderboard)
-            }
+             socket?.on("quizEnded") { args ->
+                 val array = args[0] as JSONArray
+                 val leaderboard = mutableListOf<Map<String, Any>>()
+                 for (i in 0 until array.length()) {
+                     val item = array.getJSONObject(i)
+                     leaderboard.add(
+                         mapOf(
+                             "rank" to item.getInt("rank"),
+                             "userId" to item.getInt("userId"),
+                             "username" to item.getString("username"),
+                             "score" to item.getInt("score")
+                         )
+                     )
+                 }
+                 onQuizEnded(leaderboard)
+                 Log.d("LiveQuizManager", "🏁 Quiz Ended: $leaderboard")
+             }
 
-            socket?.on("userJoined") { args ->
+
+
+             socket?.on("userJoined") { args ->
                 val obj = args[0] as JSONObject
-                onUserJoined(obj)
+                 quizId = obj.getString("quizId")
+                 totalQuestions = obj.getString("totalQuestions")
+
+                 onUserJoined(obj)
                 Log.d("LiveQuizManager", "👥 User Joined: $obj")
             }
 
@@ -128,6 +130,7 @@ class LiveQuizManager(
             put("answer", answer)
         }
         socket?.emit("submitAnswer", data)
+        Log.d("Livequizmanager", "quizId: ${quizId}")
     }
 
     fun disconnect() {

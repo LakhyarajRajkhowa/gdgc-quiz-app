@@ -8,32 +8,38 @@ import com.example.quizapp.data.models.*
 import com.example.quizapp.data.repository.QuizRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import okhttp3.ResponseBody
 import org.json.JSONObject
 
-
 class AuthViewModel(
     private val repository: QuizRepository,
-    private val tokenManager: TokenManager // ✅ inject TokenManager
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
-    val authState: StateFlow<AuthState> = _authState
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     fun login(scholarId: String, password: String) {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 _authState.value = AuthState.Loading
+
                 val response = repository.login(LoginRequest(scholarId, password))
 
                 val token = tokenManager.getToken()
-                if (token != null && response.user != null ) {
+                if (token != null && response.user != null) {
                     _authState.value = AuthState.Success(token)
-                    Log.d("LoginTest", "Login success: token=$token, user=${response.user}")
+                    Log.d("AuthViewModel", "Login success: token=$token, user=${response.user}")
                 } else {
                     _authState.value = AuthState.Error("Login failed: missing token or user")
+                    Log.d("AuthViewModel", "Login failed: missing token or user")
                 }
             } catch (e: Exception) {
                 val errorMessage = when (e) {
@@ -44,19 +50,24 @@ class AuthViewModel(
                     else -> e.message ?: "Unknown error"
                 }
                 _authState.value = AuthState.Error(errorMessage)
-                Log.d("LoginTest", "Login failed: $errorMessage")
+                Log.d("AuthViewModel", "Login failed: $errorMessage")
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
-
-
     fun register(username: String, scholarId: String, password: String) {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
+                _authState.value = AuthState.Loading
+
                 val response = repository.register(RegisterRequest(username, scholarId, password))
+
                 val msg = response.message ?: "Registered successfully"
                 _authState.value = AuthState.Message(msg)
+                Log.d("AuthViewModel", "Register success: $msg")
             } catch (e: Exception) {
                 val errorMessage = when (e) {
                     is HttpException -> {
@@ -66,11 +77,12 @@ class AuthViewModel(
                     else -> e.message ?: "Unknown error"
                 }
                 _authState.value = AuthState.Error(errorMessage)
+                Log.d("AuthViewModel", "Register failed: $errorMessage")
+            } finally {
+                _isLoading.value = false
             }
         }
     }
-
-
 }
 
 sealed class AuthState {
@@ -85,7 +97,7 @@ private fun parseErrorMessage(errorBody: String?): String {
     return try {
         if (errorBody.isNullOrEmpty()) return "Unknown error"
         val json = JSONObject(errorBody)
-        json.optString("error", "Unknown error")  // ✅ Looks for 'error' key
+        json.optString("error", "Unknown error")
     } catch (e: Exception) {
         "Unknown error"
     }
@@ -95,7 +107,7 @@ private fun parseLoginErrorMessage(errorBody: String?): String {
     return try {
         if (errorBody.isNullOrEmpty()) return "Unknown error"
         val json = JSONObject(errorBody)
-        json.optString("message", "Unknown error")  // ✅ Looks for 'message' key
+        json.optString("message", "Unknown error")
     } catch (e: Exception) {
         "Unknown error"
     }

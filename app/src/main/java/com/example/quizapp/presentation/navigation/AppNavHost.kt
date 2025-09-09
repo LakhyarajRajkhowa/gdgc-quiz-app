@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.example.quizapp.data.storage.extractUserIdFromToken
 import com.example.quizapp.presentation.common.QuizLoadingScreen
+import com.example.quizapp.presentation.components.ErrorDialog
 import com.example.quizapp.presentation.quiz.LiveQuiz.LiveQuizScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -181,7 +182,7 @@ fun AppNavHost(navController: NavHostController) {
                 },
                 onNavLibrary = { navController.navigate(NavRoutes.COMING_SOON) },
                 onNavLeaderboard = { navController.navigate(NavRoutes.COMING_SOON) },
-                onNavMe = { navController.navigate(NavRoutes.COMING_SOON) },
+                onNavMe = { navController.navigate(NavRoutes.PROFILE) },
                 onGetStartedClick = { navController.navigate(NavRoutes.DAILY_QUIZ) }
             )
         }
@@ -235,7 +236,22 @@ fun AppNavHost(navController: NavHostController) {
                     }
                 )
             } else {
-                QuizLoadingScreen() // your existing loading screen
+                val error by liveQuizViewModel.error.collectAsState()
+
+                if (error != null) {
+                    ErrorDialog(
+                        message = error!!,
+                        onDismiss = {
+                            liveQuizViewModel.clearError()
+                            navController.navigate(NavRoutes.HOME) {
+                                popUpTo(NavRoutes.HOME) { inclusive = true }
+
+                            } // You can create this function in your ViewModel
+                        }
+                    )
+                }
+
+               else  QuizLoadingScreen() // your existing loading screen
 
                 // Wait for quiz to start
                 val quizStarted by liveQuizViewModel.quizStarted.collectAsState()
@@ -294,7 +310,22 @@ fun AppNavHost(navController: NavHostController) {
         }
 
 
-        composable(NavRoutes.COMING_SOON) {
+        composable(NavRoutes.PROFILE) {
+            UserProfileScreen(
+                onClick = {
+                    tokenManager.clearToken()
+                    navController.navigate(NavRoutes.ONBOARDING1) {
+                        popUpTo(NavRoutes.ONBOARDING1) { inclusive = true }
+
+                    }
+
+                }
+            )
+        }
+
+
+
+    composable(NavRoutes.COMING_SOON) {
             ComingSoonScreen(onBack = { navController.popBackStack() })
         }
 

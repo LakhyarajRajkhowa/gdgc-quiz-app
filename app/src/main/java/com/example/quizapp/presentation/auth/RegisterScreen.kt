@@ -1,6 +1,7 @@
 package com.example.quizapp.presentation.auth
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Spacer
@@ -28,19 +29,19 @@ enum class RegisterStep {
 @Composable
 fun RegisterScreen(
     onFinish: (username: String, scholarId: String, password: String) -> Unit,
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit,
+    isLoading: Boolean = false // ✅ Pass this from a ViewModel or parent composable
 ) {
     var currentStep by remember { mutableStateOf(RegisterStep.USERNAME) }
     var username by remember { mutableStateOf("") }
     var scholarId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // helper to go to previous step when back arrow pressed
     fun goBack() {
         currentStep = when (currentStep) {
             RegisterStep.USERNAME -> {
-                onBackToLogin() // ✅ go back to login when already at first step
-            RegisterStep.USERNAME
+                onBackToLogin()
+                RegisterStep.USERNAME
             }
             RegisterStep.SCHOLAR_ID -> RegisterStep.USERNAME
             RegisterStep.PASSWORD -> RegisterStep.SCHOLAR_ID
@@ -52,7 +53,6 @@ fun RegisterScreen(
     val progress = currentStepIndex / totalSteps.toFloat()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // decorative background
         DecorativeCircles()
 
         Column(
@@ -63,7 +63,6 @@ fun RegisterScreen(
         ) {
             Spacer(Modifier.height(16.dp))
 
-            // Back Arrow
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
@@ -73,7 +72,6 @@ fun RegisterScreen(
                     .clickable { goBack() }
             )
 
-            // Purple underline
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(
@@ -89,10 +87,8 @@ fun RegisterScreen(
                 )
             }
 
-
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Title depending on step
             val title = when (currentStep) {
                 RegisterStep.USERNAME -> "Enter your Username"
                 RegisterStep.SCHOLAR_ID -> "Enter your Scholar ID"
@@ -108,7 +104,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Input for each step (keeps original backend logic)
             when (currentStep) {
                 RegisterStep.USERNAME -> {
                     OutlinedTextField(
@@ -159,7 +154,7 @@ fun RegisterScreen(
                     RegisterStep.PASSWORD -> if (password.isNotBlank()) onFinish(username, scholarId, password)
                 }
             },
-            enabled = enabled,
+            enabled = enabled && !isLoading, // ✅ disable during loading
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
@@ -169,13 +164,28 @@ fun RegisterScreen(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF7D4CFF),
-                contentColor = Color.White
+                contentColor = Color.White,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.White.copy(alpha = 0.6f)
             )
         ) {
             Text(buttonLabel, fontWeight = FontWeight.Bold, fontSize = 17.sp)
         }
+
+        // ✅ Show CircularProgressIndicator when loading
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
     }
 }
+
 
 @Composable
 fun DecorativeCircles() {

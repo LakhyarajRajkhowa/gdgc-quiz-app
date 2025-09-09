@@ -1,6 +1,5 @@
 package com.example.quizapp.presentation.quiz.LiveQuiz
 
-import android.text.Html
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -9,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,10 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import com.example.quizapp.R
+import com.example.quizapp.presentation.components.ErrorDialog
 import com.example.quizapp.presentation.components.LeaveQuizDialog
 import com.example.quizapp.presentation.components.OutlinedOption
-import io.socket.client.IO.socket
-import kotlinx.coroutines.delay
 import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,13 +32,17 @@ fun LiveQuizScreen(
     quizCode: String,
     userId: Int?,
     onNavigateToLeaderboard: (quizCode: String) -> Unit
+
 ) {
     val quizStarted by viewModel.quizStarted.collectAsState()
     val newQuestion by viewModel.newQuestion.collectAsState()
     val questionEnded by viewModel.questionEnded.collectAsState()
     val quizEnded by viewModel.quizEnded.collectAsState()
     val error by viewModel.error.collectAsState()
+    val totalQuestions by viewModel.totalQuestions.collectAsState()
 
+
+    var currentQuestionIndex by remember { mutableStateOf<Int?>(0) }
 
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     var timeUp by remember { mutableStateOf(false) }
@@ -76,7 +77,9 @@ fun LiveQuizScreen(
             selectedIndex = null
             timeUp = false
             timeLeft = it.optInt("time", 10) // get time from server
+            submitted = false
         }
+        currentQuestionId = currentQuestionId + 1
     }
 
     // Countdown timer
@@ -119,16 +122,20 @@ fun LiveQuizScreen(
     val correctGreen = Color(0xFF4CAF50)
     val incorrectRed = Color(0xFFF44336)
 
-    val totalQuestions = 1 // Placeholder for live quiz
-    val progress = 1f      // Single question progress for UI
-
+      // Placeholder for live quiz
+    val progress = if (totalQuestions > 0) {
+        currentQuestionIndex?.toFloat()?.div(totalQuestions.toFloat())?: 0f
+    } else {
+        0f
+    }
+    // Single question progress for UI
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         LinearProgressIndicator(
-                            progress = progress,
+                            progress = progress?.toFloat() ?: 0f,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp),
@@ -169,23 +176,31 @@ fun LiveQuizScreen(
                                 userId,
                                 newQuestion?.optJSONArray("options")?.optString(idx) ?: ""
                             )
+                            submitted = true  // Mark as submitted
                         }
+                        Log.d("Livequizscreen", "quesid: ${newQuestion?.optString("id") ?: ""}")
                     },
-                    enabled = selectedIndex != null && !timeUp,
+                    enabled = selectedIndex != null && !timeUp && !submitted, // Disable after submission
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
+                        .navigationBarsPadding()
                         .height(48.dp)
                         .fillMaxWidth(0.6f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (timeUp) purple.copy(alpha = 0.8f) else purple,
+                        containerColor = if (timeUp || submitted) purple.copy(alpha = 0.8f) else purple,
                         contentColor = Color.White
                     )
                 ) {
                     Text(
-                        text = if (timeUp) "Time's Up!" else "Submit Answer",
+                        text = when {
+                            timeUp -> "Time's Up!"
+                            submitted -> "Submitted"
+                            else -> "Submit Answer"
+                        },
                         fontSize = 18.sp
                     )
                 }
+
             }
         }
     ) { innerPadding ->

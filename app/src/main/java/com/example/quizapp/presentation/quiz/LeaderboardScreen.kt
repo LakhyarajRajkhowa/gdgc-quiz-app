@@ -288,7 +288,13 @@ fun LeaderboardScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "User ID",
+                            text = "Rank",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = "Username",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = Color.Gray
@@ -310,7 +316,12 @@ fun LeaderboardScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "User ${entry.userId}",
+                                text = entry.rank.toString(),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp
+                            )
+                            Text(
+                                text = entry.username,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 18.sp
                             )

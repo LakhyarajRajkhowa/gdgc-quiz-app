@@ -7,18 +7,25 @@ import com.example.quizapp.data.repository.QuizRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class LeaderboardItem(
+    val rank: Int,
     val userId: Int,
+    val username: String,
     val score: Int
 )
+
+
 
 class LiveQuizViewModel(
     private val repo: QuizRepository,
     private val quizManager: LiveQuizManager,
-    private val userId: Int? // Store current user id
+    private val userId: Int?
 ) : ViewModel() {
+    private val _totalQuestions = MutableStateFlow(0)
+    val totalQuestions: MutableStateFlow<Int> = _totalQuestions
 
     private val _quizStarted = MutableStateFlow<String?>(null)
     val quizStarted: StateFlow<String?> = _quizStarted
@@ -46,7 +53,6 @@ class LiveQuizViewModel(
 
     fun startLiveQuizConnection(quizCode: String, userId: Int?) {
         connectToServer(quizCode, userId)
-        joinQuiz(quizCode, userId)
     }
 
     private fun connectToServer(quizCode: String, userId: Int?) {
@@ -58,19 +64,34 @@ class LiveQuizViewModel(
                 Log.d("LiveQuizVM", "Quiz Started: $id")
             },
             onNewQuestion = { question ->
+                if (_quizStarted.value == null) {
+                    _quizStarted.value = "running" // Quiz already started, late joiner
+                    Log.d("LiveQuizVM", "Quiz already running, handling as late joiner.")
+                }
                 _newQuestion.value = JSONObject(question.toString())
                 _error.value = null
                 Log.d("LiveQuizVM", "New Question: $question")
             },
             onQuestionEnded = { result ->
+                if (_quizStarted.value == null) {
+                    _quizStarted.value = "running"
+                    Log.d("LiveQuizVM", "Received questionEnded, treating quiz as running.")
+                }
                 _questionEnded.value = result
                 Log.d("LiveQuizVM", "Question Ended: $result")
             },
             onQuizEnded = { leaderboardDataRaw ->
+                if (_quizStarted.value == null) {
+                    _quizStarted.value = "ended"
+                    Log.d("LiveQuizVM", "Received quizEnded, treating quiz as ended.")
+                }
                 handleQuizEnded(leaderboardDataRaw)
                 Log.d("LiveQuizVM", "Quiz Ended: $leaderboardDataRaw")
             },
             onUserJoined = { data ->
+                val total = data.optString("totalQuestions", "0")
+                _totalQuestions.value = total.toInt()
+                Log.d("LiveQuizVM", "User Joined: $data, totalQuestions = $total")
                 Log.d("LiveQuizVM", "User Joined: $data")
             },
             onAnswerReceived = { data ->
@@ -84,27 +105,24 @@ class LiveQuizViewModel(
     }
 
     private fun handleQuizEnded(leaderboardDataRaw: Any) {
-        // Convert raw JSON array to list of LeaderboardItem
-        val leaderboard = (leaderboardDataRaw as List<Map<String, Any>>).map {
+        val list = leaderboardDataRaw as List<Map<String, Any>>
+        val leaderboard = list.map {
             LeaderboardItem(
-                userId = (it["user_id"] as Number).toInt(),
+                rank = (it["rank"] as Number).toInt(),
+                userId = (it["userId"] as Number).toInt(),
+                username = it["username"].toString(),
                 score = (it["score"] as Number).toInt()
             )
-
         }
-
-        // Update leaderboard state
         _leaderboardState.value = leaderboard
-
-        // Set current user's score
         val myScore = leaderboard.find { it.userId == userId }?.score ?: 0
         _score.value = myScore
-
-        // Optional: calculate total possible score
-        _totalScore.value = leaderboard.sumOf { it.score }
-
+        _totalScore.value = totalQuestions.value * 20
         _quizEnded.value = true
     }
+
+
+
 
     fun joinQuiz(quizCode: String, userId: Int?) {
         quizManager.joinQuiz(quizCode, userId)
@@ -123,7 +141,9 @@ class LiveQuizViewModel(
     fun disconnect() {
         quizManager.disconnect()
     }
-
+    fun clearError() {
+        _error.value = null
+    }
     override fun onCleared() {
         super.onCleared()
         quizManager.disconnect()
